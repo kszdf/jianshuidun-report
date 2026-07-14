@@ -1,0 +1,2033 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>税检康 · 财税风险智能检测</title>
+    <style>
+        /* ========== 全局样式 ========== */
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            -webkit-tap-highlight-color: transparent;
+        }
+
+        :root {
+            --primary: #0a1f44;
+            --accent: #c9a24a;
+            --bg: #f8f9fa;
+            --text-main: #2c3e50;
+            --text-sub: #7f8c8d;
+            --success: #27ae60;
+            --warning: #f39c12;
+            --danger: #e74c3c;
+            --critical: #c0392b;
+            --card-radius: 16px;
+            --shadow: 0 4px 20px rgba(10, 31, 68, 0.08);
+            --shadow-hover: 0 8px 30px rgba(10, 31, 68, 0.12);
+        }
+
+        html, body {
+            height: 100%;
+            font-family: -apple-system, BlinkMacSystemFont, "PingFang SC", "Helvetica Neue", "Microsoft YaHei", sans-serif;
+            background: var(--bg);
+            color: var(--text-main);
+            font-size: 16px;
+            line-height: 1.6;
+        }
+
+        #app {
+            max-width: 480px;
+            margin: 0 auto;
+            min-height: 100vh;
+            background: var(--bg);
+            position: relative;
+            overflow-x: hidden;
+        }
+
+        /* ========== 页面容器 & 过渡动画 ========== */
+        .page {
+            display: none;
+            min-height: 100vh;
+            padding: 24px 20px 40px;
+            opacity: 0;
+            transform: translateY(10px);
+            transition: opacity 0.3s ease, transform 0.3s ease;
+        }
+
+        .page.active {
+            display: block;
+            opacity: 1;
+            transform: translateY(0);
+        }
+
+        /* ========== 通用按钮 ========== */
+        .btn {
+            display: block;
+            width: 100%;
+            padding: 16px 24px;
+            border: none;
+            border-radius: 50px;
+            font-size: 17px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.25s ease;
+            text-align: center;
+            letter-spacing: 1px;
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, #c9a24a 0%, #b8922f 100%);
+            color: #fff;
+            box-shadow: 0 6px 20px rgba(201, 162, 74, 0.35);
+        }
+
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 25px rgba(201, 162, 74, 0.45);
+        }
+
+        .btn-primary:active {
+            transform: translateY(0);
+        }
+
+        .btn-primary:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        .btn-outline {
+            background: transparent;
+            color: var(--primary);
+            border: 2px solid var(--primary);
+        }
+
+        .btn-outline:hover {
+            background: var(--primary);
+            color: #fff;
+        }
+
+        .btn-secondary {
+            background: #fff;
+            color: var(--text-main);
+            border: 1px solid #e0e0e0;
+        }
+
+        .btn-secondary:hover {
+            border-color: var(--accent);
+            color: var(--accent);
+        }
+
+        /* ========== 底部版权 ========== */
+        .footer-copyright {
+            text-align: center;
+            font-size: 11px;
+            color: var(--text-sub);
+            margin-top: 30px;
+            padding: 0 10px;
+            line-height: 1.8;
+            opacity: 0.8;
+        }
+
+        /* ==================== 首页 ==================== */
+        #page-home {
+            background: linear-gradient(180deg, #0a1f44 0%, #1a3560 50%, var(--bg) 85%);
+            color: #fff;
+        }
+
+        .home-header {
+            text-align: center;
+            padding: 50px 0 40px;
+        }
+
+        .home-logo {
+            width: 72px;
+            height: 72px;
+            margin: 0 auto 20px;
+            background: linear-gradient(135deg, #c9a24a, #e8c872);
+            border-radius: 20px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 36px;
+            box-shadow: 0 8px 24px rgba(201, 162, 74, 0.4);
+        }
+
+        .home-title {
+            font-size: 38px;
+            font-weight: 800;
+            letter-spacing: 6px;
+            margin-bottom: 12px;
+            background: linear-gradient(135deg, #fff 0%, #e8c872 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .home-subtitle {
+            font-size: 15px;
+            opacity: 0.85;
+            letter-spacing: 1px;
+        }
+
+        .home-subtitle span {
+            color: #c9a24a;
+            font-weight: 600;
+        }
+
+        .home-features {
+            background: #fff;
+            border-radius: var(--card-radius);
+            padding: 28px 20px;
+            margin: 20px 0 30px;
+            box-shadow: var(--shadow);
+        }
+
+        .feature-item {
+            display: flex;
+            align-items: flex-start;
+            padding: 16px 0;
+        }
+
+        .feature-item:not(:last-child) {
+            border-bottom: 1px solid #f0f0f0;
+        }
+
+        .feature-icon {
+            width: 48px;
+            height: 48px;
+            border-radius: 12px;
+            background: linear-gradient(135deg, #0a1f44 0%, #1a3560 100%);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 22px;
+            margin-right: 14px;
+            flex-shrink: 0;
+        }
+
+        .feature-text h3 {
+            font-size: 16px;
+            font-weight: 700;
+            color: var(--primary);
+            margin-bottom: 4px;
+        }
+
+        .feature-text p {
+            font-size: 13px;
+            color: var(--text-sub);
+        }
+
+        .home-bottom {
+            text-align: center;
+            margin-top: 20px;
+        }
+
+        .home-bottom .tip {
+            font-size: 13px;
+            color: var(--text-sub);
+            margin-top: 16px;
+        }
+
+        .home-bottom .tip strong {
+            color: var(--accent);
+            font-weight: 700;
+        }
+
+        /* ==================== 行业选择页 ==================== */
+        .page-header {
+            padding: 30px 0 24px;
+            text-align: center;
+        }
+
+        .page-header h2 {
+            font-size: 24px;
+            font-weight: 700;
+            color: var(--primary);
+            margin-bottom: 8px;
+        }
+
+        .page-header p {
+            font-size: 14px;
+            color: var(--text-sub);
+        }
+
+        .industry-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 14px;
+            margin-top: 20px;
+        }
+
+        .industry-card {
+            background: #fff;
+            border-radius: var(--card-radius);
+            padding: 24px 16px;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.25s ease;
+            box-shadow: var(--shadow);
+            border: 2px solid transparent;
+        }
+
+        .industry-card:hover {
+            transform: translateY(-4px);
+            box-shadow: var(--shadow-hover);
+            border-color: var(--accent);
+        }
+
+        .industry-card:active {
+            transform: translateY(-2px);
+        }
+
+        .industry-icon {
+            font-size: 36px;
+            margin-bottom: 10px;
+        }
+
+        .industry-name {
+            font-size: 15px;
+            font-weight: 600;
+            color: var(--text-main);
+        }
+
+        /* ==================== 答题页 ==================== */
+        #page-quiz {
+            padding-top: 0;
+        }
+
+        .quiz-topbar {
+            padding: 20px 0 16px;
+            position: sticky;
+            top: 0;
+            background: var(--bg);
+            z-index: 10;
+        }
+
+        .quiz-progress-wrap {
+            display: flex;
+            align-items: center;
+            margin-bottom: 8px;
+        }
+
+        .quiz-progress-bar {
+            flex: 1;
+            height: 8px;
+            background: #e8e8e8;
+            border-radius: 4px;
+            overflow: hidden;
+        }
+
+        .quiz-progress-fill {
+            height: 100%;
+            background: linear-gradient(90deg, var(--accent), #e8c872);
+            border-radius: 4px;
+            transition: width 0.4s ease;
+            width: 0%;
+        }
+
+        .quiz-progress-text {
+            margin-left: 12px;
+            font-size: 13px;
+            color: var(--text-sub);
+            font-weight: 600;
+            white-space: nowrap;
+        }
+
+        .quiz-dimension {
+            display: inline-block;
+            font-size: 12px;
+            color: var(--accent);
+            background: rgba(201, 162, 74, 0.1);
+            padding: 4px 12px;
+            border-radius: 20px;
+            margin-bottom: 16px;
+            font-weight: 600;
+        }
+
+        .quiz-question-number {
+            font-size: 14px;
+            color: var(--text-sub);
+            margin-bottom: 8px;
+        }
+
+        .quiz-question-text {
+            font-size: 20px;
+            font-weight: 700;
+            color: var(--primary);
+            line-height: 1.5;
+            margin-bottom: 32px;
+            min-height: 90px;
+        }
+
+        .option-btn {
+            display: block;
+            width: 100%;
+            padding: 18px 20px;
+            margin-bottom: 14px;
+            background: #fff;
+            border: 2px solid #e8e8e8;
+            border-radius: var(--card-radius);
+            font-size: 16px;
+            color: var(--text-main);
+            cursor: pointer;
+            text-align: left;
+            transition: all 0.25s ease;
+            position: relative;
+            font-weight: 500;
+        }
+
+        .option-btn:hover {
+            border-color: var(--accent);
+            background: #fffdf5;
+        }
+
+        .option-btn .option-label {
+            display: inline-block;
+            width: 28px;
+            height: 28px;
+            line-height: 28px;
+            text-align: center;
+            background: #f0f0f0;
+            border-radius: 50%;
+            margin-right: 12px;
+            font-size: 14px;
+            font-weight: 700;
+            vertical-align: middle;
+            transition: all 0.25s ease;
+        }
+
+        .option-btn.selected-a {
+            border-color: var(--danger);
+            background: #fdf0ef;
+        }
+        .option-btn.selected-a .option-label {
+            background: var(--danger);
+            color: #fff;
+        }
+
+        .option-btn.selected-b {
+            border-color: var(--warning);
+            background: #fef7ed;
+        }
+        .option-btn.selected-b .option-label {
+            background: var(--warning);
+            color: #fff;
+        }
+
+        .option-btn.selected-c {
+            border-color: var(--success);
+            background: #eafaf1;
+        }
+        .option-btn.selected-c .option-label {
+            background: var(--success);
+            color: #fff;
+        }
+
+        .quiz-footer {
+            margin-top: 30px;
+            display: flex;
+            gap: 12px;
+        }
+
+        .quiz-footer .btn {
+            flex: 1;
+        }
+
+        /* ==================== 加载页 ==================== */
+        #page-loading {
+            display: none;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            background: linear-gradient(180deg, #0a1f44 0%, #1a3560 100%);
+            color: #fff;
+        }
+
+        #page-loading.active {
+            display: flex;
+        }
+
+        .loading-spinner {
+            width: 80px;
+            height: 80px;
+            border: 4px solid rgba(201, 162, 74, 0.2);
+            border-top-color: var(--accent);
+            border-radius: 50%;
+            animation: spin 0.8s linear infinite;
+            margin-bottom: 30px;
+        }
+
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+
+        .loading-text {
+            font-size: 18px;
+            font-weight: 600;
+            margin-bottom: 10px;
+        }
+
+        .loading-sub {
+            font-size: 13px;
+            opacity: 0.7;
+        }
+
+        .loading-dots::after {
+            content: '';
+            animation: dots 1.5s steps(4, end) infinite;
+        }
+
+        @keyframes dots {
+            0%, 20% { content: ''; }
+            40% { content: '.'; }
+            60% { content: '..'; }
+            80%, 100% { content: '...'; }
+        }
+
+        /* ==================== 结果页 ==================== */
+        #page-result {
+            padding-bottom: 40px;
+        }
+
+        .result-score-section {
+            text-align: center;
+            padding: 30px 0 20px;
+        }
+
+        .score-circle {
+            width: 200px;
+            height: 200px;
+            margin: 0 auto 20px;
+            position: relative;
+        }
+
+        .score-circle svg {
+            width: 100%;
+            height: 100%;
+            transform: rotate(-90deg);
+        }
+
+        .score-circle-bg {
+            fill: none;
+            stroke: #eee;
+            stroke-width: 12;
+        }
+
+        .score-circle-progress {
+            fill: none;
+            stroke: var(--danger);
+            stroke-width: 12;
+            stroke-linecap: round;
+            stroke-dasharray: 565.48;
+            stroke-dashoffset: 565.48;
+            transition: stroke-dashoffset 1.5s ease, stroke 0.5s ease;
+        }
+
+        .score-inner {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            text-align: center;
+        }
+
+        .score-number {
+            font-size: 52px;
+            font-weight: 800;
+            line-height: 1;
+            margin-bottom: 6px;
+        }
+
+        .score-label {
+            font-size: 18px;
+            font-weight: 700;
+        }
+
+        .score-sub {
+            font-size: 12px;
+            color: var(--text-sub);
+            margin-top: 4px;
+        }
+
+        /* 不同风险等级颜色 */
+        .level-low .score-number, .level-low .score-label { color: var(--success); }
+        .level-low .score-circle-progress { stroke: var(--success); }
+
+        .level-medium .score-number, .level-medium .score-label { color: var(--warning); }
+        .level-medium .score-circle-progress { stroke: var(--warning); }
+
+        .level-high .score-number, .level-high .score-label { color: var(--danger); }
+        .level-high .score-circle-progress { stroke: var(--danger); }
+
+        .level-critical .score-number, .level-critical .score-label { color: var(--critical); }
+        .level-critical .score-circle-progress { stroke: var(--critical); }
+
+        .section-title {
+            font-size: 18px;
+            font-weight: 700;
+            color: var(--primary);
+            margin: 24px 0 16px;
+            padding-left: 12px;
+            border-left: 4px solid var(--accent);
+        }
+
+        /* 雷达图 */
+        .radar-section {
+            background: #fff;
+            border-radius: var(--card-radius);
+            padding: 20px;
+            box-shadow: var(--shadow);
+            text-align: center;
+        }
+
+        .radar-section h3 {
+            font-size: 16px;
+            font-weight: 700;
+            color: var(--primary);
+            margin-bottom: 16px;
+        }
+
+        .radar-svg {
+            width: 260px;
+            height: 260px;
+            margin: 0 auto;
+        }
+
+        .risk-cards {
+            margin-top: 8px;
+        }
+
+        .risk-card {
+            background: #fff;
+            border-radius: var(--card-radius);
+            padding: 16px;
+            margin-bottom: 12px;
+            box-shadow: var(--shadow);
+            display: flex;
+            align-items: flex-start;
+            border-left: 4px solid var(--danger);
+        }
+
+        .risk-card.warning { border-left-color: var(--warning); }
+        .risk-card.danger { border-left-color: var(--danger); }
+        .risk-card.critical { border-left-color: var(--critical); }
+
+        .risk-rank {
+            width: 32px;
+            height: 32px;
+            border-radius: 50%;
+            background: var(--primary);
+            color: #fff;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 14px;
+            font-weight: 700;
+            margin-right: 14px;
+            flex-shrink: 0;
+        }
+
+        .risk-content {
+            flex: 1;
+        }
+
+        .risk-name {
+            font-size: 15px;
+            font-weight: 700;
+            color: var(--text-main);
+            margin-bottom: 6px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+
+        .risk-tag {
+            font-size: 11px;
+            padding: 2px 8px;
+            border-radius: 10px;
+            font-weight: 600;
+            color: #fff;
+        }
+
+        .risk-tag.low { background: var(--success); }
+        .risk-tag.medium { background: var(--warning); }
+        .risk-tag.high { background: var(--danger); }
+        .risk-tag.medium-high { background: var(--danger); }
+        .risk-tag.critical { background: var(--critical); }
+
+        .risk-desc {
+            font-size: 13px;
+            color: var(--text-sub);
+            line-height: 1.5;
+        }
+
+        .risk-case {
+            margin-top: 10px;
+            padding: 8px 10px;
+            background: rgba(201, 162, 74, 0.08);
+            border-radius: 6px;
+            border-left: 2px solid var(--accent);
+        }
+
+        .case-title {
+            font-size: 12px;
+            font-weight: 600;
+            color: var(--primary);
+            margin-bottom: 3px;
+        }
+
+        .case-brief {
+            font-size: 11px;
+            color: var(--text-sub);
+            line-height: 1.4;
+        }
+
+        .result-footer {
+            margin-top: 30px;
+            text-align: center;
+        }
+
+        .result-footer .tip {
+            font-size: 12px;
+            color: var(--text-sub);
+            margin-top: 12px;
+        }
+
+        /* ==================== 表单页 ==================== */
+        #page-form {
+            padding-bottom: 40px;
+        }
+
+        .form-header {
+            text-align: center;
+            padding: 40px 0 30px;
+        }
+
+        .form-header h2 {
+            font-size: 24px;
+            font-weight: 700;
+            color: var(--primary);
+            margin-bottom: 8px;
+        }
+
+        .form-header p {
+            font-size: 14px;
+            color: var(--text-sub);
+        }
+
+        .form-card {
+            background: #fff;
+            border-radius: var(--card-radius);
+            padding: 28px 20px;
+            box-shadow: var(--shadow);
+        }
+
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        .form-group label {
+            display: block;
+            font-size: 14px;
+            font-weight: 600;
+            color: var(--text-main);
+            margin-bottom: 8px;
+        }
+
+        .form-group label .required {
+            color: var(--danger);
+            margin-right: 4px;
+        }
+
+        .form-group input {
+            width: 100%;
+            padding: 14px 16px;
+            border: 1.5px solid #e0e0e0;
+            border-radius: 12px;
+            font-size: 15px;
+            color: var(--text-main);
+            transition: border-color 0.25s ease;
+            background: #fafafa;
+        }
+
+        .form-group input:focus {
+            outline: none;
+            border-color: var(--accent);
+            background: #fff;
+        }
+
+        .form-group input.error {
+            border-color: var(--danger);
+            background: #fdf0ef;
+        }
+
+        .form-error {
+            font-size: 12px;
+            color: var(--danger);
+            margin-top: 4px;
+            display: none;
+        }
+
+        .form-group.has-error .form-error {
+            display: block;
+        }
+
+        .form-submit {
+            margin-top: 28px;
+        }
+
+        .form-note {
+            text-align: center;
+            font-size: 12px;
+            color: var(--text-sub);
+            margin-top: 16px;
+        }
+
+        .form-note strong {
+            color: var(--accent);
+        }
+
+        /* 加载中按钮 */
+        .btn-loading {
+            position: relative;
+            color: transparent !important;
+        }
+
+        .btn-loading::after {
+            content: '';
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            width: 22px;
+            height: 22px;
+            margin: -11px 0 0 -11px;
+            border: 2px solid rgba(255,255,255,0.3);
+            border-top-color: #fff;
+            border-radius: 50%;
+            animation: spin 0.6s linear infinite;
+        }
+
+        /* ==================== 成功页 ==================== */
+        #page-success {
+            text-align: center;
+            display: none;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            padding-top: 60px;
+        }
+
+        #page-success.active {
+            display: flex;
+        }
+
+        .success-icon {
+            width: 100px;
+            height: 100px;
+            background: var(--success);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-bottom: 30px;
+            animation: success-bounce 0.6s ease;
+        }
+
+        @keyframes success-bounce {
+            0% { transform: scale(0); }
+            50% { transform: scale(1.15); }
+            70% { transform: scale(0.9); }
+            100% { transform: scale(1); }
+        }
+
+        .success-icon svg {
+            width: 50px;
+            height: 50px;
+            stroke: #fff;
+            stroke-width: 4;
+            fill: none;
+            stroke-linecap: round;
+            stroke-linejoin: round;
+        }
+
+        .success-icon svg path {
+            stroke-dasharray: 100;
+            stroke-dashoffset: 100;
+            animation: check-draw 0.5s ease 0.3s forwards;
+        }
+
+        @keyframes check-draw {
+            to { stroke-dashoffset: 0; }
+        }
+
+        .success-title {
+            font-size: 28px;
+            font-weight: 700;
+            color: var(--primary);
+            margin-bottom: 12px;
+        }
+
+        .success-desc {
+            font-size: 15px;
+            color: var(--text-sub);
+            margin-bottom: 8px;
+        }
+
+        .success-tip {
+            font-size: 13px;
+            color: var(--accent);
+            background: rgba(201, 162, 74, 0.1);
+            padding: 10px 20px;
+            border-radius: 20px;
+            margin: 24px 0 30px;
+            font-weight: 500;
+        }
+
+        .contact-card {
+            background: #fff;
+            border-radius: var(--card-radius);
+            padding: 20px;
+            margin-bottom: 30px;
+            box-shadow: var(--shadow);
+            width: 100%;
+            text-align: left;
+        }
+
+        .contact-card h4 {
+            font-size: 15px;
+            color: var(--primary);
+            margin-bottom: 12px;
+            font-weight: 700;
+        }
+
+        .contact-item {
+            display: flex;
+            align-items: center;
+            padding: 8px 0;
+            font-size: 14px;
+            color: var(--text-main);
+        }
+
+        .contact-item .icon {
+            margin-right: 10px;
+            font-size: 18px;
+        }
+
+        .contact-item strong {
+            color: var(--accent);
+            font-weight: 700;
+        }
+
+        /* ==================== 工具类 ==================== */
+        .fade-in {
+            animation: fadeIn 0.4s ease;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(8px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        /* PC 端优化 */
+        @media (min-width: 768px) {
+            body {
+                background: #e8ebf0;
+                padding: 20px 0;
+            }
+            #app {
+                border-radius: 24px;
+                box-shadow: 0 20px 60px rgba(0,0,0,0.15);
+                overflow: hidden;
+                min-height: calc(100vh - 40px);
+            }
+            .page {
+                min-height: calc(100vh - 40px);
+            }
+        }
+    </style>
+</head>
+<body>
+    <div id="app">
+
+        <!-- ========== 1. 首页 ========== -->
+        <div id="page-home" class="page active">
+            <div class="home-header">
+                <div class="home-logo">📊</div>
+                <h1 class="home-title">税检康</h1>
+                <p class="home-subtitle">
+                    <span>20道题</span> · <span>5分钟</span> · 快速识别企业税务风险
+                </p>
+            </div>
+
+            <div class="home-features">
+                <div class="feature-item">
+                    <div class="feature-icon">🔍</div>
+                    <div class="feature-text">
+                        <h3>稽查视角出题</h3>
+                        <p>25年稽查实战经验总结，从税务局查账角度设计题目</p>
+                    </div>
+                </div>
+                <div class="feature-item">
+                    <div class="feature-icon">📋</div>
+                    <div class="feature-text">
+                        <h3>江苏真实案例</h3>
+                        <p>全部案例来自江苏本地稽查案件，带文号可溯源</p>
+                    </div>
+                </div>
+                <div class="feature-item">
+                    <div class="feature-icon">📑</div>
+                    <div class="feature-text">
+                        <h3>五大维度覆盖</h3>
+                        <p>发票/成本/资金/股权/金税合规，全方位风险扫描</p>
+                    </div>
+                </div>
+            </div>
+
+            <div class="home-bottom">
+                <button class="btn btn-primary" onclick="goToPage('page-industry')">开始检测</button>
+                <p class="tip">已有 <strong>500+</strong> 企业完成检测</p>
+            </div>
+
+            <div class="footer-copyright" style="color: rgba(255,255,255,0.5);">
+                本检测结果仅供参考，不构成税务建议<br>
+                苏ICP备2026023229号
+            </div>
+        </div>
+
+        <!-- ========== 2. 行业选择页 ========== -->
+        <div id="page-industry" class="page">
+            <div class="page-header">
+                <h2>请选择您的行业</h2>
+                <p>我们将根据行业特性进行更精准的风险评估</p>
+            </div>
+
+            <div class="industry-grid">
+                <div class="industry-card" onclick="selectIndustry('建筑工程')">
+                    <div class="industry-icon">🏗️</div>
+                    <div class="industry-name">建筑工程</div>
+                </div>
+                <div class="industry-card" onclick="selectIndustry('房地产')">
+                    <div class="industry-icon">🏢</div>
+                    <div class="industry-name">房地产</div>
+                </div>
+                <div class="industry-card" onclick="selectIndustry('制造业')">
+                    <div class="industry-icon">🏭</div>
+                    <div class="industry-name">制造业</div>
+                </div>
+                <div class="industry-card" onclick="selectIndustry('商贸流通')">
+                    <div class="industry-icon">🛒</div>
+                    <div class="industry-name">商贸流通</div>
+                </div>
+                <div class="industry-card" onclick="selectIndustry('现代服务')">
+                    <div class="industry-icon">💼</div>
+                    <div class="industry-name">现代服务</div>
+                </div>
+                <div class="industry-card" onclick="selectIndustry('高新技术')">
+                    <div class="industry-icon">🔬</div>
+                    <div class="industry-name">高新技术</div>
+                </div>
+                <div class="industry-card" style="grid-column: span 2;" onclick="selectIndustry('主播电商')">
+                    <div class="industry-icon">🎬</div>
+                    <div class="industry-name">主播电商</div>
+                </div>
+            </div>
+
+            <div class="footer-copyright">
+                本检测结果仅供参考，不构成税务建议<br>
+                苏ICP备2026023229号
+            </div>
+        </div>
+
+        <!-- ========== 3. 答题页 ========== -->
+        <div id="page-quiz" class="page">
+            <div class="quiz-topbar">
+                <div class="quiz-progress-wrap">
+                    <div class="quiz-progress-bar">
+                        <div class="quiz-progress-fill" id="progressFill"></div>
+                    </div>
+                    <div class="quiz-progress-text" id="progressText">1/20</div>
+                </div>
+            </div>
+
+            <div class="quiz-content">
+                <span class="quiz-dimension" id="quizDimension">发票与收入风险</span>
+                <div class="quiz-question-number" id="quizNum">第 1 题</div>
+                <div class="quiz-question-text" id="quizText">近一年是否存在大额咨询费/服务费发票，且无实质性业务支撑？</div>
+
+                <button class="option-btn" data-option="A" onclick="selectOption('A')">
+                    <span class="option-label">A</span>
+                    <span id="optionAText">是/存在</span>
+                </button>
+                <button class="option-btn" data-option="B" onclick="selectOption('B')">
+                    <span class="option-label">B</span>
+                    <span id="optionBText">部分存在/偶尔</span>
+                </button>
+                <button class="option-btn" data-option="C" onclick="selectOption('C')">
+                    <span class="option-label">C</span>
+                    <span id="optionCText">否/不存在</span>
+                </button>
+
+                <div class="quiz-footer">
+                    <button class="btn btn-secondary" id="prevBtn" onclick="prevQuestion()" style="display:none;">上一题</button>
+                </div>
+            </div>
+
+            <div class="footer-copyright">
+                本检测结果仅供参考，不构成税务建议<br>
+                苏ICP备2026023229号
+            </div>
+        </div>
+
+        <!-- ========== 4. 加载页 ========== -->
+        <div id="page-loading" class="page">
+            <div class="loading-spinner"></div>
+            <div class="loading-text">正在分析您的财税数据<span class="loading-dots"></span></div>
+            <div class="loading-sub">对标金税四期，多维度交叉验证</div>
+        </div>
+
+        <!-- ========== 5. 结果页 ========== -->
+        <div id="page-result" class="page">
+            <div class="result-score-section">
+                <div class="score-circle" id="scoreCircle">
+                    <svg viewBox="0 0 200 200">
+                        <circle class="score-circle-bg" cx="100" cy="100" r="90"></circle>
+                        <circle class="score-circle-progress" id="scoreProgress" cx="100" cy="100" r="90"></circle>
+                    </svg>
+                    <div class="score-inner">
+                        <div class="score-number" id="scoreNumber">0</div>
+                        <div class="score-label" id="scoreLabel">计算中</div>
+                        <div class="score-sub">风险分值 · 满分100</div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="section-title">五维风险雷达</div>
+            <div class="radar-section">
+                <h3>5大维度风险分布</h3>
+                <svg class="radar-svg" id="radarSvg" viewBox="0 0 300 300"></svg>
+            </div>
+
+            <div class="section-title">TOP 3 风险点</div>
+            <div class="risk-cards" id="riskCards"></div>
+
+            <div class="result-footer">
+                <button class="btn btn-primary" onclick="goToPage('page-form')">获取完整报告 + 一对一解读</button>
+                <p class="tip">完整报告含全部20项风险详情 + 江苏真实案例 + 应对建议</p>
+            </div>
+
+            <div class="footer-copyright">
+                本检测结果仅供参考，不构成税务建议<br>
+                苏ICP备2026023229号
+            </div>
+        </div>
+
+        <!-- ========== 6. 表单页 ========== -->
+        <div id="page-form" class="page">
+            <div class="form-header">
+                <h2>获取完整财税风险报告</h2>
+                <p>填写信息后，专属顾问将为您发送详细报告</p>
+            </div>
+
+            <div class="form-card">
+                <form id="infoForm" onsubmit="return handleSubmit(event)">
+                    <div class="form-group">
+                        <label><span class="required">*</span>企业名称</label>
+                        <input type="text" id="companyName" placeholder="请输入企业全称">
+                        <div class="form-error">请输入企业全称</div>
+                    </div>
+
+                    <div class="form-group">
+                        <label><span class="required">*</span>您的姓名</label>
+                        <input type="text" id="userName" placeholder="请输入您的姓名">
+                        <div class="form-error">请输入您的姓名</div>
+                    </div>
+
+                    <div class="form-group">
+                        <label><span class="required">*</span>手机号码</label>
+                        <input type="tel" id="phone" placeholder="请输入手机号码" maxlength="11">
+                        <div class="form-error">请输入正确的手机号码</div>
+                    </div>
+
+                    <div class="form-submit">
+                        <button type="submit" class="btn btn-primary" id="submitBtn">立即获取报告</button>
+                    </div>
+
+                    <div class="form-note">
+                        我们承诺严格保护您的隐私，信息仅用于<strong>财税咨询服务</strong>
+                    </div>
+                </form>
+            </div>
+
+            <div class="footer-copyright">
+                本检测结果仅供参考，不构成税务建议<br>
+                苏ICP备2026023229号
+            </div>
+        </div>
+
+        <!-- ========== 7. 提交成功页 ========== -->
+        <div id="page-success" class="page">
+            <div class="success-icon">
+                <svg viewBox="0 0 50 50">
+                    <path d="M10 25 L20 35 L40 15"></path>
+                </svg>
+            </div>
+            <h2 class="success-title">提交成功！</h2>
+            <p class="success-desc">您的专属财税顾问将在24小时内与您联系</p>
+            <p class="success-desc">请保持电话畅通</p>
+            <div class="success-tip">📱 报告将发送至您的手机微信，请留意</div>
+
+            <div class="contact-card">
+                <h4>📞 客服咨询</h4>
+                <div class="contact-item">
+                    <span class="icon">📞</span>
+                    <span>咨询热线：<strong>400-888-9999</strong></span>
+                </div>
+                <div class="contact-item">
+                    <span class="icon">💬</span>
+                    <span>微信客服：<strong>huigentang88</strong></span>
+                </div>
+            </div>
+
+            <button class="btn btn-primary" style="width:100%;" onclick="resetAndGoHome()">返回首页</button>
+
+            <div class="footer-copyright">
+                本检测结果仅供参考，不构成税务建议<br>
+                苏ICP备2026023229号
+            </div>
+        </div>
+
+    </div>
+
+    <script>
+        /* ==================================================
+         *  题库数据 v3.0（稽查视角·江苏真实案例版）
+         *  5个维度，每个维度4题，共20题
+         *  权重制：极高风险3分、高风险2分、中高1.5分、中1分
+         *  选项A=最危险(满分权重)、B=中等(60%权重)、C=安全(0分)
+         *  riskGroup: 聚合标记，相同标记的题在结果页合并展示
+         * ================================================== */
+        const questions = [
+            // 维度一：发票与收入类（最容易被查的）
+            { id: 1, dimension: '发票收入', riskLevel: 'critical', riskWeight: 3,
+              question: '你公司有没有买过发票、或者让别人开过没有真实业务的发票？',
+              options: ['有，经常这么干', '有过一两次', '从来没有'],
+              scores: [3, 1.8, 0],
+              riskDesc: '虚开增值税专用发票——刑事犯罪，最高可判无期',
+              caseId: 'case01' },
+            { id: 2, dimension: '发票收入', riskLevel: 'critical', riskWeight: 3,
+              question: '客户的货款有没有直接打你个人卡、微信或支付宝，不进公账也不开发票的？',
+              options: ['有，占收入30%以上', '有，10%-30%', '基本没有，都走公账'],
+              scores: [3, 1.8, 0],
+              riskDesc: '私户收款隐匿收入——税务稽查重点打击对象',
+              caseId: 'case02' },
+            { id: 3, dimension: '发票收入', riskLevel: 'high', riskWeight: 2,
+              question: '你公司进货的发票品名和卖出去的品名，对得上吗？（比如进的是钢材，开的是服务费）',
+              options: ['经常对不上', '偶尔有差异', '基本都对得上'],
+              scores: [2, 1.2, 0],
+              riskDesc: '进销项品名不匹配——金税系统自动预警',
+              caseId: 'case03' },
+            { id: 4, dimension: '发票收入', riskLevel: 'high', riskWeight: 2,
+              question: '你有没有通过"税务筹划"公司或中介，做过降低税负的操作？',
+              options: ['有好几家中介在帮我做', '找过一两家但不太确定合不合规', '没有，都是正规报税'],
+              scores: [2, 1.2, 0],
+              riskDesc: '涉税中介协助虚开——中介被罚，企业同样追责',
+              caseId: 'case04' },
+            // 维度二：成本费用类（老板最容易踩坑的）
+            { id: 5, dimension: '成本费用', riskLevel: 'high', riskWeight: 2,
+              question: '你公司员工工资是不是全部通过公户发放、并且如实申报了个税？',
+              options: ['大部分发现金或私户发', '一部分公户一部分私户', '全部公户发放并报税'],
+              scores: [2, 1.2, 0],
+              riskDesc: '工资挂往来/虚列工资——典型的成本造假',
+              caseId: 'case05' },
+            { id: 6, dimension: '成本费用', riskLevel: 'high', riskWeight: 2,
+              question: '你公司有没有从人力资源公司、劳务公司拿过大额发票冲成本？实际有真实业务吗？',
+              options: ['有不少，很多没有真实用工', '有一些，部分有真实业务', '基本没有或全部真实'],
+              scores: [2, 1.2, 0],
+              riskDesc: '用劳务/人力发票虚增成本——稽查必查项',
+              caseId: 'case06' },
+            { id: 7, dimension: '成本费用', riskLevel: 'medium-high', riskWeight: 1.5,
+              question: '你个人和家里的开销（房子、车子、旅游、孩子上学等），有多少是从公司账上走的？',
+              options: ['很多，家里开销基本都走公司', '偶尔有一些', '基本没有，公私分明'],
+              scores: [1.5, 0.9, 0],
+              riskDesc: '股东个人消费公司报销——偷税+财产混同双重风险',
+              caseId: 'case07', riskGroup: '财产混同' },
+            { id: 8, dimension: '成本费用', riskLevel: 'medium-high', riskWeight: 1.5,
+              question: '你公司一年有多少支出是没有发票的？（比如现金采购、好处费、白条入账）',
+              options: ['很多，占成本20%以上', '有一些，10%左右', '很少，基本都有票'],
+              scores: [1.5, 0.9, 0],
+              riskDesc: '无票支出/白条入账——企业所得税调增大雷',
+              caseId: 'case08' },
+            // 维度三：资金与往来类（金四重点监控的）
+            { id: 9, dimension: '资金往来', riskLevel: 'high', riskWeight: 2,
+              question: '你从公司借过钱吗？年底之前能还回去吗？',
+              options: ['借了不少，好几年没还了', '借过，年底基本能还', '基本不向公司借钱'],
+              scores: [2, 1.2, 0],
+              riskDesc: '股东借款长期不还——视同分红补20%个税',
+              caseId: 'case09' },
+            { id: 10, dimension: '资金往来', riskLevel: 'high', riskWeight: 2,
+              question: '你公司往个人卡转钱多吗？都是什么名目？',
+              options: ['经常转，很多用途说不太清', '偶尔转，基本有合理名目', '很少公转私'],
+              scores: [2, 1.2, 0],
+              riskDesc: '公转私行为异常——银行+税务联合监控',
+              caseId: 'case10' },
+            { id: 11, dimension: '资金往来', riskLevel: 'medium-high', riskWeight: 1.5,
+              question: '你公司账上"其他应收款""其他应付款"挂了很多钱、好几年没动过吗？',
+              options: ['挂了很多，占总资产30%以上', '有一些，说不清具体是什么', '很少，往来很干净'],
+              scores: [1.5, 0.9, 0],
+              riskDesc: '往来挂账长期不清——隐匿收入或虚增成本的温床',
+              caseId: 'case11' },
+            { id: 12, dimension: '资金往来', riskLevel: 'critical', riskWeight: 3,
+              question: '你公司有没有过"开票走账"的操作？对公账户收钱后又通过个人账户转回去？',
+              options: ['有，经常这么操作', '有过一两次', '从来没有'],
+              scores: [3, 1.8, 0],
+              riskDesc: '资金回流——虚开铁证，直接移送公安',
+              caseId: 'case12' },
+            // 维度四：股权架构与风险隔离类（老板身家风险）
+            { id: 13, dimension: '股权架构', riskLevel: 'critical', riskWeight: 3,
+              question: '你的公司是一人有限公司或个人独资企业吗？你个人卡收过公司的钱吗？',
+              options: ['是一人公司/独资，个人卡经常收公司钱', '是，但公私基本分开', '不是一人公司'],
+              scores: [3, 1.8, 0],
+              riskDesc: '一人公司财产混同——个人对公司债务承担连带责任',
+              caseId: 'case13', riskGroup: '财产混同' },
+            { id: 14, dimension: '股权架构', riskLevel: 'critical', riskWeight: 3,
+              question: '你个人和公司的财产分得清吗？你为公司借过钱、签过个人担保吗？',
+              options: ['基本不分，公司就是家，担保也签了不少', '有一些不分，但不多', '分得很清，没有个人担保'],
+              scores: [3, 1.8, 0],
+              riskDesc: '家族企业家企不分——企业出事全家陪葬',
+              caseId: 'case14', riskGroup: '财产混同' },
+            { id: 15, dimension: '股权架构', riskLevel: 'high', riskWeight: 2,
+              question: '你有没有让别人代你持股的情况？代持人靠谱吗？',
+              options: ['有不少代持', '有一两个', '没有代持'],
+              scores: [2, 1.2, 0],
+              riskDesc: '股权代持——代持人反悔/欠债/出意外，股权可能丢失',
+              caseId: 'case15' },
+            { id: 16, dimension: '股权架构', riskLevel: 'medium-high', riskWeight: 1.5,
+              question: '你名下有几家公司？互相之间有交易吗？价格和市场价一样吗？',
+              options: ['有好几家，经常互相转钱，价格自己定', '有几家，有少量交易', '只有一家或基本没有关联交易'],
+              scores: [1.5, 0.9, 0],
+              riskDesc: '关联交易定价不公允——税务局有权调整补税',
+              caseId: 'case16' },
+            // 维度五：金税四期大数据合规类
+            { id: 17, dimension: '金税合规', riskLevel: 'high', riskWeight: 2,
+              question: '你知道你公司的税负率是多少吗？和同行业比大概什么水平？',
+              options: ['不知道，应该比同行低不少', '大概知道，略低一些', '清楚，和行业平均差不多'],
+              scores: [2, 1.2, 0],
+              riskDesc: '税负率严重偏离行业——金税四期自动预警',
+              caseId: 'case17' },
+            { id: 18, dimension: '金税合规', riskLevel: 'high', riskWeight: 2,
+              question: '你公司报给各个部门的数据都对得上吗？（工资人数、社保人数、个税人数）',
+              options: ['对不上，差不少', '有少量差异', '基本一致'],
+              scores: [2, 1.2, 0],
+              riskDesc: '多部门数据穿透——40+部门数据打通，任何不一致都触发预警',
+              caseId: 'case18' },
+            { id: 19, dimension: '金税合规', riskLevel: 'medium-high', riskWeight: 1.5,
+              question: '你公司账上的库存和实际仓库里的货，能对上吗？多久盘一次库？',
+              options: ['对不上，差很多，很少盘库', '有点出入，偶尔盘一下', '基本能对上，定期盘点'],
+              scores: [1.5, 0.9, 0],
+              riskDesc: '库存/进销存不匹配——加油机数据比对实锤',
+              caseId: 'case19' },
+            { id: 20, dimension: '金税合规', riskLevel: 'medium', riskWeight: 1,
+              question: '你公司有没有长期零申报或者一直报亏损的情况？',
+              options: ['连续好几年零申报/亏损', '偶尔有几个月零申报', '基本正常申报'],
+              scores: [1, 0.6, 0],
+              riskDesc: '长期零申报/异常申报——连续6个月零申报红色预警',
+              caseId: 'case20' }
+        ];
+
+        /* ==================================================
+         *  江苏真实案例库（稽查视角·文号可溯源）
+         *  结果页TOP3风险展示案例摘要，留资后看完整报告
+         * ================================================== */
+        const caseLibrary = {
+            'case01': { company: '苏州河之洛酒店', violation: '虚开增值税专用发票', detail: '虚开金额1081万元，移送公安', brief: '酒店通过虚增进项发票抵扣税款，涉案金额超千万' },
+            'case02': { company: '宿迁雷克电源', violation: '私户收款隐匿收入', detail: '补罚合计951万元', brief: '通过个人账户收取货款不入账，被举报后查实' },
+            'case03': { company: '连云港智南影贸易', violation: '进销品名严重背离', detail: '虚开发票1500万元，移送公安', brief: '进项为钢材，销项开为服务费，品名完全背离' },
+            'case04': { company: '宜兴某涉税中介', violation: '协助企业虚开发票', detail: '罚款204万元', brief: '涉税中介帮助多家企业虚开发票，中介同被罚' },
+            'case05': { company: '苏州通菱建筑安装', violation: '虚列工资套取现金', detail: '补罚合计104万元', brief: '通过虚列工人工资套取现金，被税务稽查查实' },
+            'case06': { company: '苏州某工程咨询公司', violation: '劳务发票虚增成本', detail: '罚款174万元', brief: '通过人力资源公司开具虚假劳务发票冲减利润' },
+            'case07': { company: '综合稽查案例', violation: '股东个人消费公司报销', detail: '补税+滞纳金+可能涉及职务侵占', brief: '老板将家庭购车、装修、旅游等费用全部在公司报销' },
+            'case08': { company: '江苏千寿医药', violation: '接受虚开发票冲成本', detail: '涉案金额3.09亿元', brief: '接受大量虚开进项发票用于抵扣和冲减利润' },
+            'case09': { company: '通用法规案例', violation: '股东借款长期不还', detail: '视同分红补缴20%个税（国税发〔2003〕158号）', brief: '个人投资者从企业借款年度终了未归还又未用于生产经营' },
+            'case10': { company: '盐城红升加油站', violation: '异常公转私', detail: '补罚合计119万元', brief: '通过对公账户收取后频繁向个人账户转账' },
+            'case11': { company: '苏州通菱建筑安装', violation: '往来挂账长期不清', detail: '往来挂账1582万元被查', brief: '其他应收款/应付款长期大额挂账，涉嫌隐匿收入' },
+            'case12': { company: '通用稽查铁证', violation: '资金回流', detail: '虚开铁证，直接移送公安', brief: '对公收款后通过多个个人账户层层转回形成完整回流链条' },
+            'case13': { company: '徐州睢宁南郊加油站', violation: '一人公司财产混同', detail: '老板个人补税43万元', brief: '个人独资企业收入全部进入个人账户，企业账务形同虚设' },
+            'case14': { company: '综合稽查案例', violation: '企业家企不分', detail: '企业出事个人资产全部被追偿', brief: '老板为公司借款签个人担保，企业倒闭后个人房产被拍卖' },
+            'case15': { company: '通用法律风险', violation: '股权代持纠纷', detail: '代持人欠债，法院冻结代持股权', brief: '实际出资人找朋友代持股份，代持人因个人债务被强制执行' },
+            'case16': { company: '苏州某企业群', violation: '恶意拆分套优惠', detail: '税务机关调整补税', brief: '老板名下多家公司互相转移利润，拆分收入享受小微优惠' },
+            'case17': { company: '泰州靖祥珠宝', violation: '税负率严重偏低', detail: '进货5700万仅申报收入1400万', brief: '珠宝公司大量进货但申报收入远低于进货金额' },
+            'case18': { company: '通用预警案例', violation: '多部门数据不一致', detail: '触发联合预警多部门协同检查', brief: '报税务的工资人数、报社保的人数、报工商的数据相互矛盾' },
+            'case19': { company: '泰州姜堰胜利加油站', violation: '库存进销存不匹配', detail: '加油机数据比对实锤', brief: '通过加油机后台数据与申报数据比对发现大量销售未入账' },
+            'case20': { company: '通用预警案例', violation: '长期零申报/异常亏损', detail: '连续6个月零申报进入红色预警', brief: '企业连续多年零申报或报亏损但仍持续经营不注销' }
+        };
+
+        /* ==================================================
+         *  全局状态
+         * ================================================== */
+        const state = {
+            industry: '',          // 所选行业
+            currentQuestion: 0,    // 当前题目索引
+            answers: [],           // 用户答案 [{questionId, option, score}]
+            totalScore: 0,         // 总分
+            level: '',             // 风险等级
+            dimensionScores: {},   // 各维度得分
+            userInfo: {}           // 用户填写的信息
+        };
+
+        const dimensions = ['发票收入', '成本费用', '资金往来', '股权架构', '金税合规'];
+        const dimensionDescriptions = {
+            '发票收入': '虚开发票、私户收款、进销项不匹配等发票与收入类风险',
+            '成本费用': '工资造假、劳务虚开、个人消费报销等成本费用类风险',
+            '资金往来': '股东借款、公转私异常、资金回流等资金监控类风险',
+            '股权架构': '一人公司混同、家企不分、股权代持等身家风险',
+            '金税合规': '税负率异常、数据穿透、库存不匹配等大数据合规风险'
+        };
+
+        // 总分计算：极高3分×5题=15，高风险2分×9题=18，中高1.5分×5题=7.5，中1分×1题=1，合计41.5，取整42
+        const MAX_TOTAL_SCORE = 42;
+
+        /* ==================================================
+         *  页面切换
+         * ================================================== */
+        function goToPage(pageId) {
+            const currentPage = document.querySelector('.page.active');
+            const targetPage = document.getElementById(pageId);
+
+            if (currentPage === targetPage) return;
+
+            // 淡出当前页
+            if (currentPage) {
+                currentPage.style.opacity = '0';
+                currentPage.style.transform = 'translateY(-10px)';
+                setTimeout(() => {
+                    currentPage.classList.remove('active');
+                    currentPage.style.opacity = '';
+                    currentPage.style.transform = '';
+                }, 250);
+            }
+
+            // 淡入目标页
+            setTimeout(() => {
+                targetPage.classList.add('active');
+                // 触发重绘
+                targetPage.offsetWidth;
+                targetPage.style.opacity = '1';
+                targetPage.style.transform = 'translateY(0)';
+            }, currentPage ? 250 : 0);
+
+            // 滚动到顶部
+            window.scrollTo(0, 0);
+
+            // 页面进入后的特殊处理
+            if (pageId === 'page-quiz') {
+                renderQuestion();
+            } else if (pageId === 'page-loading') {
+                startLoading();
+            } else if (pageId === 'page-result') {
+                renderResult();
+            }
+        }
+
+        /* ==================================================
+         *  行业选择
+         * ================================================== */
+        function selectIndustry(industry) {
+            state.industry = industry;
+            state.currentQuestion = 0;
+            state.answers = [];
+            goToPage('page-quiz');
+        }
+
+        /* ==================================================
+         *  答题逻辑
+         * ================================================== */
+        function renderQuestion() {
+            const q = questions[state.currentQuestion];
+            const total = questions.length;
+
+            // 进度条
+            const progress = ((state.currentQuestion + 1) / total) * 100;
+            document.getElementById('progressFill').style.width = progress + '%';
+            document.getElementById('progressText').textContent = (state.currentQuestion + 1) + '/' + total;
+
+            // 维度标签
+            document.getElementById('quizDimension').textContent = q.dimension + '风险';
+            // 题号
+            document.getElementById('quizNum').textContent = '第 ' + (state.currentQuestion + 1) + ' 题';
+            // 题面
+            const textEl = document.getElementById('quizText');
+            textEl.style.opacity = '0';
+            textEl.style.transform = 'translateY(10px)';
+            setTimeout(() => {
+                textEl.textContent = q.question;
+                textEl.style.opacity = '1';
+                textEl.style.transform = 'translateY(0)';
+            }, 150);
+            textEl.style.transition = 'all 0.3s ease';
+
+            // 选项
+            document.getElementById('optionAText').textContent = q.options[0];
+            document.getElementById('optionBText').textContent = q.options[1];
+            document.getElementById('optionCText').textContent = q.options[2];
+
+            // 清除选中状态
+            document.querySelectorAll('.option-btn').forEach(btn => {
+                btn.classList.remove('selected-a', 'selected-b', 'selected-c');
+            });
+
+            // 如果有已回答的，回显
+            const answered = state.answers.find(a => a.questionId === q.id);
+            if (answered) {
+                const btn = document.querySelector(`.option-btn[data-option="${answered.option}"]`);
+                if (btn) btn.classList.add('selected-' + answered.option.toLowerCase());
+            }
+
+            // 上一题按钮
+            const prevBtn = document.getElementById('prevBtn');
+            prevBtn.style.display = state.currentQuestion > 0 ? 'block' : 'none';
+        }
+
+        function selectOption(option) {
+            const q = questions[state.currentQuestion];
+            const optionIndex = option === 'A' ? 0 : option === 'B' ? 1 : 2;
+            const score = q.scores[optionIndex];
+
+            // 保存答案
+            const existingIndex = state.answers.findIndex(a => a.questionId === q.id);
+            const answerData = { questionId: q.id, option, score, dimension: q.dimension, riskLevel: q.riskLevel, riskGroup: q.riskGroup || null, caseId: q.caseId, riskDesc: q.riskDesc };
+            if (existingIndex >= 0) {
+                state.answers[existingIndex] = answerData;
+            } else {
+                state.answers.push(answerData);
+            }
+
+            // 高亮选中
+            document.querySelectorAll('.option-btn').forEach(btn => {
+                btn.classList.remove('selected-a', 'selected-b', 'selected-c');
+            });
+            document.querySelector(`.option-btn[data-option="${option}"]`).classList.add('selected-' + option.toLowerCase());
+
+            // 延迟跳到下一题
+            setTimeout(() => {
+                if (state.currentQuestion < questions.length - 1) {
+                    state.currentQuestion++;
+                    renderQuestion();
+                } else {
+                    // 答完了
+                    calculateResult();
+                    goToPage('page-loading');
+                }
+            }, 300);
+        }
+
+        function prevQuestion() {
+            if (state.currentQuestion > 0) {
+                state.currentQuestion--;
+                renderQuestion();
+            }
+        }
+
+        /* ==================================================
+         *  计算得分
+         * ================================================== */
+        function calculateResult() {
+            // 计算总分（原始分）
+            const rawScore = state.answers.reduce((sum, a) => sum + a.score, 0);
+            // 转换成百分制展示（42→100）
+            state.totalScore = Math.round((rawScore / MAX_TOTAL_SCORE) * 100);
+
+            // 计算各维度得分（同样转成该维度满分下的百分制
+            state.dimensionScores = {};
+            dimensions.forEach(dim => {
+                const dimAnswers = state.answers.filter(a => a.dimension === dim);
+                const dimRaw = dimAnswers.reduce((sum, a) => sum + a.score, 0);
+                // 计算该维度满分
+                const dimMax = questions.filter(q => q.dimension === dim).reduce((sum, q) => sum + q.riskWeight, 0);
+                const dimPercent = dimMax > 0 ? (dimRaw / dimMax) * 20 : 0; // 雷达图每维度0-20分制
+                state.dimensionScores[dim] = Math.round(dimPercent * 10) / 10;
+            });
+
+            // 判断等级（按百分制）
+            if (state.totalScore <= 20) {
+                state.level = 'low';
+            } else if (state.totalScore <= 45) {
+                state.level = 'medium';
+            } else if (state.totalScore <= 70) {
+                state.level = 'high';
+            } else {
+                state.level = 'critical';
+            }
+        }
+
+        function getLevelText(level) {
+            const map = { low: '低风险', medium: '中风险', high: '高风险', critical: '极高风险' };
+            return map[level] || '未知';
+        }
+
+        function getLevelClass(level) {
+            return 'level-' + level;
+        }
+
+        /* ==================================================
+         *  加载页
+         * ================================================== */
+        function startLoading() {
+            setTimeout(() => {
+                goToPage('page-result');
+            }, 2000);
+        }
+
+        /* ==================================================
+         *  结果页渲染
+         * ================================================== */
+        function renderResult() {
+            // 圆形进度
+            const scoreCircle = document.getElementById('scoreCircle');
+            scoreCircle.className = 'score-circle ' + getLevelClass(state.level);
+
+            // 数字动画
+            const scoreNumber = document.getElementById('scoreNumber');
+            animateNumber(0, state.totalScore, 1200, scoreNumber);
+
+            document.getElementById('scoreLabel').textContent = getLevelText(state.level);
+
+            // 圆环进度动画（满分100，周长约565.48）
+            const circumference = 2 * Math.PI * 90;
+            const progress = state.totalScore / 100;
+            setTimeout(() => {
+                document.getElementById('scoreProgress').style.strokeDashoffset = circumference * (1 - progress);
+            }, 300);
+
+            // 渲染雷达图
+            renderRadar();
+
+            // 渲染TOP3风险
+            renderTopRisks();
+        }
+
+        // 数字动画
+        function animateNumber(from, to, duration, element) {
+            const startTime = performance.now();
+            function update(currentTime) {
+                const elapsed = currentTime - startTime;
+                const progress = Math.min(elapsed / duration, 1);
+                // easeOutCubic
+                const ease = 1 - Math.pow(1 - progress, 3);
+                const current = Math.round(from + (to - from) * ease);
+                element.textContent = current;
+                if (progress < 1) requestAnimationFrame(update);
+            }
+            requestAnimationFrame(update);
+        }
+
+        /* ==================================================
+         *  雷达图 (SVG)
+         * ================================================== */
+        function renderRadar() {
+            const svg = document.getElementById('radarSvg');
+            const centerX = 150;
+            const centerY = 150;
+            const maxRadius = 100;
+            const levels = 5; // 5圈
+            const dimCount = dimensions.length;
+
+            let svgContent = '';
+
+            // 绘制背景网格（5层五边形）
+            for (let i = 1; i <= levels; i++) {
+                const r = (maxRadius / levels) * i;
+                let points = [];
+                for (let j = 0; j < dimCount; j++) {
+                    const angle = (Math.PI * 2 * j / dimCount) - Math.PI / 2;
+                    const x = centerX + r * Math.cos(angle);
+                    const y = centerY + r * Math.sin(angle);
+                    points.push(x + ',' + y);
+                }
+                svgContent += `<polygon points="${points.join(' ')}" fill="none" stroke="#e8e8e8" stroke-width="1"/>`;
+            }
+
+            // 绘制轴线
+            for (let j = 0; j < dimCount; j++) {
+                const angle = (Math.PI * 2 * j / dimCount) - Math.PI / 2;
+                const x = centerX + maxRadius * Math.cos(angle);
+                const y = centerY + maxRadius * Math.sin(angle);
+                svgContent += `<line x1="${centerX}" y1="${centerY}" x2="${x}" y2="${y}" stroke="#e8e8e8" stroke-width="1"/>`;
+            }
+
+            // 绘制数据区域
+            const maxScorePerDim = 20; // 每维度4题 * 5分 = 20分
+            let dataPoints = [];
+            for (let j = 0; j < dimCount; j++) {
+                const dim = dimensions[j];
+                const score = state.dimensionScores[dim] || 0;
+                const ratio = score / maxScorePerDim;
+                const r = maxRadius * ratio;
+                const angle = (Math.PI * 2 * j / dimCount) - Math.PI / 2;
+                const x = centerX + r * Math.cos(angle);
+                const y = centerY + r * Math.sin(angle);
+                dataPoints.push(x + ',' + y);
+            }
+
+            // 获取当前等级对应的颜色
+            const levelColors = {
+                low: 'rgba(39, 174, 96, 0.3)',
+                medium: 'rgba(243, 156, 18, 0.3)',
+                high: 'rgba(231, 76, 60, 0.3)',
+                critical: 'rgba(192, 57, 43, 0.3)'
+            };
+            const strokeColors = {
+                low: '#27ae60',
+                medium: '#f39c12',
+                high: '#e74c3c',
+                critical: '#c0392b'
+            };
+
+            svgContent += `<polygon points="${dataPoints.join(' ')}" fill="${levelColors[state.level]}" stroke="${strokeColors[state.level]}" stroke-width="2">
+                <animate attributeName="opacity" from="0" to="1" dur="0.8s" fill="freeze"/>
+            </polygon>`;
+
+            // 数据点
+            for (let j = 0; j < dimCount; j++) {
+                const dim = dimensions[j];
+                const score = state.dimensionScores[dim] || 0;
+                const ratio = score / maxScorePerDim;
+                const r = maxRadius * ratio;
+                const angle = (Math.PI * 2 * j / dimCount) - Math.PI / 2;
+                const x = centerX + r * Math.cos(angle);
+                const y = centerY + r * Math.sin(angle);
+                svgContent += `<circle cx="${x}" cy="${y}" r="4" fill="${strokeColors[state.level]}" opacity="0">
+                    <animate attributeName="opacity" from="0" to="1" dur="0.5s" begin="${0.3 + j * 0.1}s" fill="freeze"/>
+                </circle>`;
+            }
+
+            // 维度标签
+            const labelOffset = 20;
+            for (let j = 0; j < dimCount; j++) {
+                const angle = (Math.PI * 2 * j / dimCount) - Math.PI / 2;
+                const r = maxRadius + labelOffset;
+                let x = centerX + r * Math.cos(angle);
+                let y = centerY + r * Math.sin(angle);
+                let anchor = 'middle';
+
+                // 调整文字对齐
+                if (Math.cos(angle) > 0.3) anchor = 'start';
+                else if (Math.cos(angle) < -0.3) anchor = 'end';
+
+                // 上下微调
+                y += 4;
+
+                svgContent += `<text x="${x}" y="${y}" text-anchor="${anchor}" font-size="12" fill="#2c3e50" font-weight="600">${dimensions[j]}</text>`;
+            }
+
+            svg.innerHTML = svgContent;
+        }
+
+        /* ==================================================
+         *  TOP3 风险点（按单题得分排序，带江苏真实案例）
+         *  财产混同类题目聚合展示（第7/13/14题合并为一个大风险项）
+         * ================================================== */
+        function renderTopRisks() {
+            const container = document.getElementById('riskCards');
+
+            // 1. 先聚合：有riskGroup的合并
+            const groupMap = {};
+            const standaloneRisks = [];
+
+            state.answers.forEach(a => {
+                if (a.score <= 0) return; // 0分的不展示
+                if (a.riskGroup) {
+                    if (!groupMap[a.riskGroup]) {
+                        groupMap[a.riskGroup] = {
+                            groupName: a.riskGroup,
+                            totalScore: 0,
+                            items: [],
+                            maxLevel: 'low'
+                        };
+                    }
+                    groupMap[a.riskGroup].totalScore += a.score;
+                    groupMap[a.riskGroup].items.push(a);
+                    // 取最严重等级
+                    const levelOrder = { critical: 4, high: 3, 'medium-high': 2, medium: 1, low: 0 };
+                    if (levelOrder[a.riskLevel] > levelOrder[groupMap[a.riskGroup].maxLevel]) {
+                        groupMap[a.riskGroup].maxLevel = a.riskLevel;
+                    }
+                } else {
+                    standaloneRisks.push(a);
+                }
+            });
+
+            // 2. 组装风险列表：聚合项 + 独立项
+            const allRisks = [];
+
+            // 聚合项
+            Object.keys(groupMap).forEach(key => {
+                const g = groupMap[key];
+                allRisks.push({
+                    type: 'group',
+                    name: g.groupName + '风险',
+                    score: g.totalScore,
+                    level: g.maxLevel,
+                    desc: g.items.map(i => i.riskDesc.split('——')[0]).join('、'),
+                    items: g.items,
+                    caseIds: g.items.map(i => i.caseId),
+                    riskLevel: g.maxLevel
+                });
+            });
+
+            // 独立项
+            standaloneRisks.forEach(a => {
+                allRisks.push({
+                    type: 'single',
+                    name: a.riskDesc.split('——')[0],
+                    score: a.score,
+                    level: a.riskLevel,
+                    desc: a.riskDesc,
+                    caseId: a.caseId,
+                    riskLevel: a.riskLevel
+                });
+            });
+
+            // 3. 按得分从高到低排序，取TOP3
+            allRisks.sort((a, b) => b.score - a.score);
+            const topRisks = allRisks.slice(0, 3);
+
+            let html = '';
+
+            topRisks.forEach((item, index) => {
+                const cardClass = item.level === 'critical' ? 'critical' :
+                                  item.level === 'high' ? 'danger' :
+                                  item.level === 'medium-high' ? 'danger' : 'warning';
+
+                const levelText = { critical: '极高', high: '高', 'medium-high': '中高', medium: '中', low: '低' }[item.level] || '中';
+
+                // 获取案例信息
+                let caseHtml = '';
+                if (item.type === 'group' && item.caseIds && item.caseIds.length > 0) {
+                    // 聚合项：展示第一个案例
+                    const firstCase = caseLibrary[item.caseIds[0]];
+                    if (firstCase) {
+                        caseHtml = `
+                            <div class="risk-case">
+                                <div class="case-title">📌 真实案例：${firstCase.company}</div>
+                                <div class="case-brief">${firstCase.brief}</div>
+                            </div>
+                        `;
+                    }
+                } else if (item.type === 'single' && item.caseId) {
+                    const caseInfo = caseLibrary[item.caseId];
+                    if (caseInfo) {
+                        caseHtml = `
+                            <div class="risk-case">
+                                <div class="case-title">📌 真实案例：${caseInfo.company}</div>
+                                <div class="case-brief">${caseInfo.brief}</div>
+                            </div>
+                        `;
+                    }
+                }
+
+                html += `
+                    <div class="risk-card ${cardClass}">
+                        <div class="risk-rank">${index + 1}</div>
+                        <div class="risk-content">
+                            <div class="risk-name">
+                                <span>${item.name}</span>
+                                <span class="risk-tag ${item.level}">${levelText}风险</span>
+                            </div>
+                            <div class="risk-desc">${item.desc}</div>
+                            ${caseHtml}
+                        </div>
+                    </div>
+                `;
+            });
+
+            container.innerHTML = html;
+        }
+
+        /* ==================================================
+         *  表单提交
+         * ================================================== */
+        function handleSubmit(e) {
+            e.preventDefault();
+
+            const companyName = document.getElementById('companyName').value.trim();
+            const userName = document.getElementById('userName').value.trim();
+            const phone = document.getElementById('phone').value.trim();
+
+            let valid = true;
+
+            // 验证企业名称
+            const group1 = document.querySelector('#companyName').closest('.form-group');
+            if (!companyName) {
+                group1.classList.add('has-error');
+                document.querySelector('#companyName').classList.add('error');
+                valid = false;
+            } else {
+                group1.classList.remove('has-error');
+                document.querySelector('#companyName').classList.remove('error');
+            }
+
+            // 验证姓名
+            const group2 = document.querySelector('#userName').closest('.form-group');
+            if (!userName) {
+                group2.classList.add('has-error');
+                document.querySelector('#userName').classList.add('error');
+                valid = false;
+            } else {
+                group2.classList.remove('has-error');
+                document.querySelector('#userName').classList.remove('error');
+            }
+
+            // 验证手机号
+            const group3 = document.querySelector('#phone').closest('.form-group');
+            const phoneRegex = /^1[3-9]\d{9}$/;
+            if (!phoneRegex.test(phone)) {
+                group3.classList.add('has-error');
+                document.querySelector('#phone').classList.add('error');
+                valid = false;
+            } else {
+                group3.classList.remove('has-error');
+                document.querySelector('#phone').classList.remove('error');
+            }
+
+            if (!valid) return false;
+
+            // 保存用户信息
+            state.userInfo = { companyName, userName, phone };
+
+            // 提交按钮loading
+            const submitBtn = document.getElementById('submitBtn');
+            submitBtn.classList.add('btn-loading');
+            submitBtn.disabled = true;
+
+            // 提交数据
+            const submitData = {
+                companyName,
+                userName,
+                phone,
+                industry: state.industry,
+                totalScore: state.totalScore,
+                level: state.level,
+                levelText: getLevelText(state.level),
+                dimensionScores: state.dimensionScores,
+                answers: state.answers,
+                submitTime: new Date().toISOString()
+            };
+
+            submitToFeishu(submitData).then(result => {
+                submitBtn.classList.remove('btn-loading');
+                submitBtn.disabled = false;
+
+                if (result.success) {
+                    goToPage('page-success');
+                } else {
+                    alert('提交失败，请稍后重试');
+                }
+            }).catch(() => {
+                submitBtn.classList.remove('btn-loading');
+                submitBtn.disabled = false;
+                alert('提交失败，请稍后重试');
+            });
+
+            return false;
+        }
+
+        /* ==================================================
+         *  配置：后端API基础地址
+         *  部署建税盾后端后，填入后端域名，末尾不要加 /
+         *  例如：https://report.hgtcs.com
+         *  留空则使用模拟提交（不影响检测体验，数据不入库）
+         * ================================================== */
+        const API_BASE_URL = ''; // 例如：https://report.hgtcs.com
+
+        /* ==================================================
+         *  飞书多维表数据提交
+         *  已配置API地址时走建税盾后端真实提交，未配置时用模拟提交
+         * ================================================== */
+        async function submitToFeishu(data) {
+            // 未配置API地址时，模拟成功（不影响用户体验，数据不入库）
+            if (!API_BASE_URL) {
+                console.log('未配置后端API，模拟提交成功:', data);
+                return new Promise(resolve => setTimeout(() => resolve({ success: true, simulated: true }), 800));
+            }
+
+            try {
+                // 前端驼峰字段 → 后端下划线字段
+                const payload = {
+                    phone: data.phone || '',
+                    company_name: data.companyName || '',
+                    contact_name: data.userName || '',
+                    industry: data.industry || '',
+                    total_score: data.totalScore || 0,
+                    risk_level: data.levelText || data.level || '',
+                    dimension_scores: data.dimensionScores || {},
+                    answers: data.answers || {},
+                    submit_time: data.submitTime || ''
+                };
+
+                const response = await fetch(API_BASE_URL + '/api/taxcheck/submit', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(payload)
+                });
+                const result = await response.json();
+                return result;
+            } catch (error) {
+                console.error('提交失败:', error);
+                return { success: false, message: error.message };
+            }
+        }
+
+        /* ==================================================
+         *  返回首页（重置）
+         * ================================================== */
+        function resetAndGoHome() {
+            state.industry = '';
+            state.currentQuestion = 0;
+            state.answers = [];
+            state.totalScore = 0;
+            state.level = '';
+            state.dimensionScores = {};
+            state.userInfo = {};
+
+            // 重置表单
+            document.getElementById('infoForm').reset();
+            document.querySelectorAll('.form-group').forEach(g => g.classList.remove('has-error'));
+            document.querySelectorAll('.form-group input').forEach(i => i.classList.remove('error'));
+
+            // 重置圆环
+            document.getElementById('scoreProgress').style.strokeDashoffset = 565.48;
+
+            goToPage('page-home');
+        }
+
+        /* ==================================================
+         *  输入框交互：清除错误状态
+         * ================================================== */
+        document.addEventListener('DOMContentLoaded', function() {
+            const inputs = document.querySelectorAll('.form-group input');
+            inputs.forEach(input => {
+                input.addEventListener('input', function() {
+                    const group = this.closest('.form-group');
+                    if (group.classList.contains('has-error')) {
+                        group.classList.remove('has-error');
+                        this.classList.remove('error');
+                    }
+                });
+            });
+        });
+
+        // 禁止iOS双击缩放
+        let lastTouchEnd = 0;
+        document.addEventListener('touchend', function(event) {
+            const now = Date.now();
+            if (now - lastTouchEnd <= 300) {
+                event.preventDefault();
+            }
+            lastTouchEnd = now;
+        }, false);
+    </script>
+</body>
+</html>

@@ -1,0 +1,1606 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>建税盾 - 建筑老板看得懂的经营管理报表系统</title>
+  <!-- Vue 3 -->
+  <script src="https://unpkg.com/vue@3/dist/vue.global.prod.js"></script>
+  <!-- Element Plus -->
+  <link rel="stylesheet" href="https://unpkg.com/element-plus/dist/index.css">
+  <script src="https://unpkg.com/element-plus"></script>
+  <!-- Element Plus Icons -->
+  <script src="https://unpkg.com/@element-plus/icons-vue"></script>
+  <!-- ECharts -->
+  <script src="https://cdn.jsdelivr.net/npm/echarts@5.4.3/dist/echarts.min.js"></script>
+  <style>
+    /* ===== 全局样式 ===== */
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    
+    :root {
+      --primary-dark: #0a1628;
+      --primary-blue: #1e3a5f;
+      --primary-medium: #2563eb;
+      --primary-light: #3b82f6;
+      --accent-blue: #60a5fa;
+      --accent-cyan: #22d3ee;
+      --text-primary: #1e293b;
+      --text-secondary: #64748b;
+      --text-light: #94a3b8;
+      --bg-gray: #f8fafc;
+      --bg-white: #ffffff;
+      --border-color: #e2e8f0;
+      --gradient-primary: linear-gradient(135deg, #1e3a5f 0%, #2563eb 100%);
+      --gradient-hero: linear-gradient(135deg, #0a1628 0%, #1e3a5f 50%, #2563eb 100%);
+    }
+
+    html { scroll-behavior: smooth; }
+    
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'PingFang SC', 'Hiragino Sans GB', 'Microsoft YaHei', sans-serif;
+      color: var(--text-primary);
+      background: var(--bg-white);
+      line-height: 1.6;
+    }
+
+    /* ===== 滚动动画 ===== */
+    .fade-in {
+      opacity: 0;
+      transform: translateY(30px);
+      transition: opacity 0.8s ease, transform 0.8s ease;
+    }
+    .fade-in.visible {
+      opacity: 1;
+      transform: translateY(0);
+    }
+    .fade-in-left {
+      opacity: 0;
+      transform: translateX(-40px);
+      transition: opacity 0.8s ease, transform 0.8s ease;
+    }
+    .fade-in-left.visible {
+      opacity: 1;
+      transform: translateX(0);
+    }
+    .fade-in-right {
+      opacity: 0;
+      transform: translateX(40px);
+      transition: opacity 0.8s ease, transform 0.8s ease;
+    }
+    .fade-in-right.visible {
+      opacity: 1;
+      transform: translateX(0);
+    }
+
+    /* ===== 导航栏 ===== */
+    .navbar {
+      position: fixed;
+      top: 0;
+      left: 0;
+      right: 0;
+      height: 72px;
+      z-index: 1000;
+      background: rgba(255, 255, 255, 0.95);
+      backdrop-filter: blur(10px);
+      transition: all 0.3s ease;
+      border-bottom: 1px solid transparent;
+    }
+    .navbar.scrolled {
+      box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+      border-bottom: 1px solid var(--border-color);
+    }
+    .nav-container {
+      max-width: 1280px;
+      margin: 0 auto;
+      padding: 0 40px;
+      height: 100%;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+    .nav-logo {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      cursor: pointer;
+    }
+    .nav-logo-icon {
+      width: 40px;
+      height: 40px;
+      background: var(--gradient-primary);
+      border-radius: 10px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: white;
+      font-size: 20px;
+      font-weight: bold;
+    }
+    .nav-logo-text {
+      font-size: 20px;
+      font-weight: 700;
+      color: var(--primary-dark);
+      letter-spacing: 0.5px;
+    }
+    .nav-logo-sub {
+      font-size: 12px;
+      color: var(--text-secondary);
+      font-weight: 400;
+    }
+    .nav-menu {
+      display: flex;
+      align-items: center;
+      gap: 40px;
+      list-style: none;
+    }
+    .nav-menu a {
+      text-decoration: none;
+      color: var(--text-secondary);
+      font-size: 15px;
+      font-weight: 500;
+      transition: color 0.3s;
+    }
+    .nav-menu a:hover { color: var(--primary-medium); }
+    .nav-actions { display: flex; align-items: center; gap: 16px; }
+
+    /* ===== Hero 区域 ===== */
+    .hero {
+      min-height: 100vh;
+      background: var(--gradient-hero);
+      position: relative;
+      overflow: hidden;
+      padding-top: 72px;
+      display: flex;
+      align-items: center;
+    }
+    .hero::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background: 
+        radial-gradient(circle at 20% 80%, rgba(34, 211, 238, 0.15) 0%, transparent 50%),
+        radial-gradient(circle at 80% 20%, rgba(59, 130, 246, 0.2) 0%, transparent 50%);
+      pointer-events: none;
+    }
+    .hero-grid {
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background-image: 
+        linear-gradient(rgba(255,255,255,0.03) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(255,255,255,0.03) 1px, transparent 1px);
+      background-size: 60px 60px;
+      pointer-events: none;
+    }
+    .hero-container {
+      max-width: 1280px;
+      margin: 0 auto;
+      padding: 0 40px;
+      width: 100%;
+      position: relative;
+      z-index: 1;
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 60px;
+      align-items: center;
+    }
+    .hero-content { color: white; }
+    .hero-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      padding: 8px 16px;
+      background: rgba(34, 211, 238, 0.15);
+      border: 1px solid rgba(34, 211, 238, 0.3);
+      border-radius: 50px;
+      font-size: 13px;
+      color: var(--accent-cyan);
+      margin-bottom: 24px;
+    }
+    .hero-badge .dot {
+      width: 6px;
+      height: 6px;
+      background: var(--accent-cyan);
+      border-radius: 50%;
+      animation: pulse 2s infinite;
+    }
+    @keyframes pulse {
+      0%, 100% { opacity: 1; }
+      50% { opacity: 0.5; }
+    }
+    .hero-title {
+      font-size: 48px;
+      font-weight: 700;
+      line-height: 1.25;
+      margin-bottom: 20px;
+      letter-spacing: -0.5px;
+    }
+    .hero-title .highlight {
+      background: linear-gradient(90deg, #22d3ee, #60a5fa);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+    }
+    .hero-subtitle {
+      font-size: 18px;
+      color: rgba(255, 255, 255, 0.75);
+      margin-bottom: 36px;
+      line-height: 1.8;
+      max-width: 520px;
+    }
+    .hero-buttons {
+      display: flex;
+      gap: 16px;
+      margin-bottom: 40px;
+    }
+    .btn-primary {
+      padding: 14px 32px;
+      background: linear-gradient(135deg, #22d3ee 0%, #3b82f6 100%);
+      color: white;
+      border: none;
+      border-radius: 8px;
+      font-size: 16px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.3s ease;
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      box-shadow: 0 4px 20px rgba(34, 211, 238, 0.3);
+    }
+    .btn-primary:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 8px 30px rgba(34, 211, 238, 0.4);
+    }
+    .btn-secondary {
+      padding: 14px 32px;
+      background: rgba(255, 255, 255, 0.1);
+      color: white;
+      border: 1px solid rgba(255, 255, 255, 0.2);
+      border-radius: 8px;
+      font-size: 16px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.3s ease;
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+    }
+    .btn-secondary:hover {
+      background: rgba(255, 255, 255, 0.15);
+      border-color: rgba(255, 255, 255, 0.3);
+    }
+    .hero-features {
+      display: flex;
+      gap: 32px;
+    }
+    .hero-feature-item {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      color: rgba(255, 255, 255, 0.7);
+      font-size: 14px;
+    }
+    .hero-feature-item .check {
+      color: var(--accent-cyan);
+    }
+
+    /* ===== 产品预览图 ===== */
+    .hero-preview {
+      position: relative;
+      animation: float 6s ease-in-out infinite;
+    }
+    @keyframes float {
+      0%, 100% { transform: translateY(0); }
+      50% { transform: translateY(-20px); }
+    }
+    .browser-frame {
+      background: #1e293b;
+      border-radius: 12px;
+      overflow: hidden;
+      box-shadow: 0 25px 80px rgba(0, 0, 0, 0.4);
+    }
+    .browser-header {
+      height: 40px;
+      background: #334155;
+      display: flex;
+      align-items: center;
+      padding: 0 16px;
+      gap: 8px;
+    }
+    .browser-dot {
+      width: 12px;
+      height: 12px;
+      border-radius: 50%;
+    }
+    .browser-dot.red { background: #ef4444; }
+    .browser-dot.yellow { background: #f59e0b; }
+    .browser-dot.green { background: #10b981; }
+    .browser-address {
+      flex: 1;
+      height: 24px;
+      background: rgba(255,255,255,0.1);
+      border-radius: 6px;
+      margin-left: 12px;
+      display: flex;
+      align-items: center;
+      padding: 0 12px;
+      color: rgba(255,255,255,0.5);
+      font-size: 12px;
+    }
+    .browser-content {
+      background: #f8fafc;
+      padding: 20px;
+      min-height: 340px;
+    }
+    .dashboard-preview {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 12px;
+      margin-bottom: 16px;
+    }
+    .preview-card {
+      background: white;
+      border-radius: 8px;
+      padding: 12px;
+      box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+    }
+    .preview-card-label {
+      font-size: 11px;
+      color: var(--text-light);
+      margin-bottom: 6px;
+    }
+    .preview-card-value {
+      font-size: 18px;
+      font-weight: 700;
+      color: var(--text-primary);
+    }
+    .preview-card-value.blue { color: #2563eb; }
+    .preview-card-value.green { color: #10b981; }
+    .preview-card-value.orange { color: #f59e0b; }
+    .preview-card-value.red { color: #ef4444; }
+    .preview-chart-area {
+      background: white;
+      border-radius: 8px;
+      padding: 12px;
+      height: 180px;
+      box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+    }
+    .preview-chart-bar {
+      display: flex;
+      align-items: flex-end;
+      height: 120px;
+      gap: 8px;
+      padding: 10px 0;
+    }
+    .preview-bar {
+      flex: 1;
+      background: linear-gradient(180deg, #3b82f6, #2563eb);
+      border-radius: 4px 4px 0 0;
+      transition: height 0.3s;
+    }
+    .preview-bar:nth-child(1) { height: 60%; }
+    .preview-bar:nth-child(2) { height: 80%; }
+    .preview-bar:nth-child(3) { height: 50%; }
+    .preview-bar:nth-child(4) { height: 90%; }
+    .preview-bar:nth-child(5) { height: 70%; }
+    .preview-bar:nth-child(6) { height: 85%; }
+
+    /* ===== 通用区域样式 ===== */
+    .section {
+      padding: 100px 0;
+    }
+    .section-gray { background: var(--bg-gray); }
+    .section-dark { background: var(--primary-dark); color: white; }
+    .container {
+      max-width: 1280px;
+      margin: 0 auto;
+      padding: 0 40px;
+    }
+    .section-header {
+      text-align: center;
+      margin-bottom: 60px;
+    }
+    .section-label {
+      display: inline-block;
+      padding: 6px 16px;
+      background: rgba(37, 99, 235, 0.1);
+      color: var(--primary-medium);
+      border-radius: 50px;
+      font-size: 13px;
+      font-weight: 600;
+      margin-bottom: 16px;
+    }
+    .section-dark .section-label {
+      background: rgba(34, 211, 238, 0.15);
+      color: var(--accent-cyan);
+    }
+    .section-title {
+      font-size: 36px;
+      font-weight: 700;
+      color: var(--text-primary);
+      margin-bottom: 16px;
+      letter-spacing: -0.5px;
+    }
+    .section-dark .section-title { color: white; }
+    .section-desc {
+      font-size: 16px;
+      color: var(--text-secondary);
+      max-width: 640px;
+      margin: 0 auto;
+    }
+    .section-dark .section-desc { color: rgba(255,255,255,0.6); }
+
+    /* ===== 痛点区域 ===== */
+    .pain-grid {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 24px;
+    }
+    .pain-card {
+      background: white;
+      border-radius: 12px;
+      padding: 32px 24px;
+      border: 1px solid var(--border-color);
+      transition: all 0.3s ease;
+      position: relative;
+      overflow: hidden;
+    }
+    .pain-card::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      height: 4px;
+      background: linear-gradient(90deg, #ef4444, #f59e0b);
+      transform: scaleX(0);
+      transition: transform 0.3s ease;
+    }
+    .pain-card:hover {
+      transform: translateY(-6px);
+      box-shadow: 0 20px 40px rgba(239, 68, 68, 0.1);
+      border-color: transparent;
+    }
+    .pain-card:hover::before { transform: scaleX(1); }
+    .pain-icon {
+      width: 56px;
+      height: 56px;
+      background: linear-gradient(135deg, #fef2f2, #fee2e2);
+      border-radius: 12px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      margin-bottom: 20px;
+      font-size: 28px;
+    }
+    .pain-title {
+      font-size: 18px;
+      font-weight: 600;
+      color: var(--text-primary);
+      margin-bottom: 12px;
+    }
+    .pain-desc {
+      font-size: 14px;
+      color: var(--text-secondary);
+      line-height: 1.7;
+    }
+
+    /* ===== 核心功能区域 ===== */
+    .feature-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 24px;
+    }
+    .feature-card {
+      background: white;
+      border-radius: 12px;
+      padding: 32px;
+      border: 1px solid var(--border-color);
+      transition: all 0.3s ease;
+    }
+    .feature-card:hover {
+      transform: translateY(-4px);
+      box-shadow: 0 16px 40px rgba(37, 99, 235, 0.12);
+      border-color: var(--accent-blue);
+    }
+    .feature-icon {
+      width: 60px;
+      height: 60px;
+      background: linear-gradient(135deg, #2563eb, #3b82f6);
+      border-radius: 14px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      margin-bottom: 20px;
+      color: white;
+      font-size: 26px;
+      box-shadow: 0 8px 20px rgba(37, 99, 235, 0.3);
+    }
+    .feature-card:nth-child(2) .feature-icon { background: linear-gradient(135deg, #0891b2, #22d3ee); box-shadow: 0 8px 20px rgba(8, 145, 178, 0.3); }
+    .feature-card:nth-child(3) .feature-icon { background: linear-gradient(135deg, #059669, #10b981); box-shadow: 0 8px 20px rgba(5, 150, 105, 0.3); }
+    .feature-card:nth-child(4) .feature-icon { background: linear-gradient(135deg, #d97706, #f59e0b); box-shadow: 0 8px 20px rgba(217, 119, 6, 0.3); }
+    .feature-card:nth-child(5) .feature-icon { background: linear-gradient(135deg, #7c3aed, #8b5cf6); box-shadow: 0 8px 20px rgba(124, 58, 237, 0.3); }
+    .feature-card:nth-child(6) .feature-icon { background: linear-gradient(135deg, #dc2626, #ef4444); box-shadow: 0 8px 20px rgba(220, 38, 38, 0.3); }
+    .feature-title {
+      font-size: 18px;
+      font-weight: 600;
+      color: var(--text-primary);
+      margin-bottom: 10px;
+    }
+    .feature-desc {
+      font-size: 14px;
+      color: var(--text-secondary);
+      line-height: 1.7;
+    }
+
+    /* ===== 产品截图展示区 ===== */
+    .screenshot-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 32px;
+    }
+    .screenshot-item {
+      border-radius: 12px;
+      overflow: hidden;
+      box-shadow: 0 20px 60px rgba(0, 0, 0, 0.15);
+      transition: transform 0.4s ease;
+      background: white;
+    }
+    .screenshot-item:hover {
+      transform: translateY(-8px);
+    }
+    .screenshot-header {
+      background: #1e293b;
+      padding: 12px 20px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    .screenshot-title {
+      color: white;
+      font-size: 13px;
+      margin-left: 12px;
+      font-weight: 500;
+    }
+    .screenshot-body {
+      padding: 20px;
+      background: #f8fafc;
+      min-height: 280px;
+    }
+    .mock-table {
+      width: 100%;
+      background: white;
+      border-radius: 8px;
+      overflow: hidden;
+      box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+    }
+    .mock-table-header {
+      display: grid;
+      grid-template-columns: 2fr 1fr 1fr 1fr;
+      background: #f1f5f9;
+      padding: 12px 16px;
+      font-size: 12px;
+      font-weight: 600;
+      color: var(--text-secondary);
+    }
+    .mock-table-row {
+      display: grid;
+      grid-template-columns: 2fr 1fr 1fr 1fr;
+      padding: 12px 16px;
+      font-size: 13px;
+      border-bottom: 1px solid var(--border-color);
+      color: var(--text-primary);
+    }
+    .mock-table-row:last-child { border-bottom: none; }
+    .mock-table-row .profit { color: #10b981; font-weight: 600; }
+    .mock-table-row .loss { color: #ef4444; font-weight: 600; }
+    .mock-chart-pie {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 40px;
+      height: 100%;
+    }
+    .pie-chart {
+      width: 160px;
+      height: 160px;
+      border-radius: 50%;
+      background: conic-gradient(
+        #2563eb 0deg 120deg,
+        #22d3ee 120deg 200deg,
+        #f59e0b 200deg 280deg,
+        #ef4444 280deg 320deg,
+        #94a3b8 320deg 360deg
+      );
+      position: relative;
+    }
+    .pie-chart::after {
+      content: '';
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      width: 80px;
+      height: 80px;
+      background: #f8fafc;
+      border-radius: 50%;
+    }
+    .pie-legend {
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+    }
+    .pie-legend-item {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      font-size: 13px;
+      color: var(--text-secondary);
+    }
+    .pie-legend-dot {
+      width: 10px;
+      height: 10px;
+      border-radius: 2px;
+    }
+
+    /* ===== 为什么选我们 ===== */
+    .why-grid {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 24px;
+    }
+    .why-card {
+      text-align: center;
+      padding: 32px 20px;
+    }
+    .why-icon {
+      width: 72px;
+      height: 72px;
+      margin: 0 auto 20px;
+      background: rgba(34, 211, 238, 0.1);
+      border: 2px solid rgba(34, 211, 238, 0.3);
+      border-radius: 20px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 32px;
+      color: var(--accent-cyan);
+      transition: all 0.3s ease;
+    }
+    .why-card:hover .why-icon {
+      background: var(--accent-cyan);
+      color: var(--primary-dark);
+      transform: scale(1.1);
+    }
+    .why-title {
+      font-size: 18px;
+      font-weight: 600;
+      color: white;
+      margin-bottom: 10px;
+    }
+    .why-desc {
+      font-size: 14px;
+      color: rgba(255,255,255,0.6);
+      line-height: 1.7;
+    }
+
+    /* ===== 定价区域 ===== */
+    .pricing-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 24px;
+      max-width: 1100px;
+      margin: 0 auto;
+    }
+    .pricing-card {
+      background: white;
+      border-radius: 16px;
+      padding: 40px 32px;
+      border: 2px solid var(--border-color);
+      transition: all 0.3s ease;
+      position: relative;
+    }
+    .pricing-card:hover {
+      transform: translateY(-6px);
+      box-shadow: 0 24px 60px rgba(37, 99, 235, 0.15);
+    }
+    .pricing-card.featured {
+      border-color: var(--primary-medium);
+      transform: scale(1.05);
+      box-shadow: 0 24px 60px rgba(37, 99, 235, 0.2);
+    }
+    .pricing-card.featured:hover {
+      transform: scale(1.05) translateY(-6px);
+    }
+    .pricing-badge {
+      position: absolute;
+      top: -14px;
+      left: 50%;
+      transform: translateX(-50%);
+      padding: 6px 20px;
+      background: linear-gradient(135deg, #2563eb, #3b82f6);
+      color: white;
+      font-size: 12px;
+      font-weight: 600;
+      border-radius: 50px;
+    }
+    .pricing-name {
+      font-size: 20px;
+      font-weight: 600;
+      color: var(--text-primary);
+      margin-bottom: 8px;
+    }
+    .pricing-desc {
+      font-size: 14px;
+      color: var(--text-secondary);
+      margin-bottom: 24px;
+    }
+    .pricing-price {
+      margin-bottom: 28px;
+      padding-bottom: 24px;
+      border-bottom: 1px solid var(--border-color);
+    }
+    .pricing-price-text {
+      font-size: 36px;
+      font-weight: 700;
+      color: var(--text-primary);
+    }
+    .pricing-price-text .unit {
+      font-size: 14px;
+      color: var(--text-secondary);
+      font-weight: 400;
+    }
+    .pricing-features {
+      list-style: none;
+      margin-bottom: 32px;
+    }
+    .pricing-features li {
+      padding: 10px 0;
+      font-size: 14px;
+      color: var(--text-secondary);
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+    .pricing-features li .check-icon {
+      color: #10b981;
+      font-size: 16px;
+    }
+    .pricing-btn {
+      width: 100%;
+      padding: 14px;
+      border-radius: 8px;
+      font-size: 15px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.3s ease;
+      border: 2px solid var(--primary-medium);
+      background: white;
+      color: var(--primary-medium);
+    }
+    .pricing-btn:hover {
+      background: var(--primary-medium);
+      color: white;
+    }
+    .pricing-card.featured .pricing-btn {
+      background: linear-gradient(135deg, #2563eb, #3b82f6);
+      color: white;
+      border-color: transparent;
+    }
+    .pricing-card.featured .pricing-btn:hover {
+      box-shadow: 0 8px 24px rgba(37, 99, 235, 0.4);
+    }
+
+    /* ===== CTA 区域 ===== */
+    .cta-section {
+      background: var(--gradient-hero);
+      position: relative;
+      overflow: hidden;
+    }
+    .cta-section::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background: 
+        radial-gradient(circle at 30% 50%, rgba(34, 211, 238, 0.2) 0%, transparent 50%),
+        radial-gradient(circle at 70% 50%, rgba(59, 130, 246, 0.2) 0%, transparent 50%);
+    }
+    .cta-content {
+      position: relative;
+      z-index: 1;
+      text-align: center;
+      max-width: 720px;
+      margin: 0 auto;
+    }
+    .cta-title {
+      font-size: 40px;
+      font-weight: 700;
+      color: white;
+      margin-bottom: 20px;
+      letter-spacing: -0.5px;
+    }
+    .cta-desc {
+      font-size: 18px;
+      color: rgba(255,255,255,0.7);
+      margin-bottom: 40px;
+      line-height: 1.8;
+    }
+    .cta-btn {
+      padding: 18px 48px;
+      font-size: 18px;
+      background: white;
+      color: var(--primary-medium);
+      border: none;
+      border-radius: 10px;
+      font-weight: 700;
+      cursor: pointer;
+      transition: all 0.3s ease;
+      display: inline-flex;
+      align-items: center;
+      gap: 10px;
+      box-shadow: 0 8px 30px rgba(0, 0, 0, 0.2);
+    }
+    .cta-btn:hover {
+      transform: translateY(-3px);
+      box-shadow: 0 16px 40px rgba(0, 0, 0, 0.3);
+    }
+
+    /* ===== Footer ===== */
+    .footer {
+      background: #0f172a;
+      padding: 60px 0 30px;
+      color: rgba(255,255,255,0.7);
+    }
+    .footer-grid {
+      display: grid;
+      grid-template-columns: 2fr 1fr 1fr 1fr;
+      gap: 40px;
+      margin-bottom: 40px;
+    }
+    .footer-brand {
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+    }
+    .footer-logo {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+    .footer-logo-icon {
+      width: 40px;
+      height: 40px;
+      background: var(--gradient-primary);
+      border-radius: 10px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: white;
+      font-size: 18px;
+      font-weight: bold;
+    }
+    .footer-logo-text {
+      font-size: 18px;
+      font-weight: 700;
+      color: white;
+    }
+    .footer-slogan {
+      font-size: 14px;
+      color: rgba(255,255,255,0.5);
+      line-height: 1.7;
+    }
+    .footer-col h4 {
+      color: white;
+      font-size: 15px;
+      font-weight: 600;
+      margin-bottom: 20px;
+    }
+    .footer-col ul {
+      list-style: none;
+    }
+    .footer-col li {
+      margin-bottom: 12px;
+    }
+    .footer-col a {
+      color: rgba(255,255,255,0.5);
+      text-decoration: none;
+      font-size: 14px;
+      transition: color 0.3s;
+    }
+    .footer-col a:hover { color: var(--accent-cyan); }
+    .footer-contact-item {
+      display: flex;
+      align-items: flex-start;
+      gap: 10px;
+      margin-bottom: 12px;
+      font-size: 14px;
+    }
+    .footer-bottom {
+      border-top: 1px solid rgba(255,255,255,0.1);
+      padding-top: 30px;
+      text-align: center;
+      font-size: 13px;
+      color: rgba(255,255,255,0.4);
+    }
+    .footer-bottom p { margin-bottom: 8px; }
+
+    /* ===== 响应式 ===== */
+    @media (max-width: 1024px) {
+      .hero-container { grid-template-columns: 1fr; text-align: center; }
+      .hero-features { justify-content: center; }
+      .hero-subtitle { margin: 0 auto 36px; }
+      .hero-buttons { justify-content: center; }
+      .pain-grid { grid-template-columns: repeat(2, 1fr); }
+      .feature-grid { grid-template-columns: repeat(2, 1fr); }
+      .why-grid { grid-template-columns: repeat(2, 1fr); }
+      .pricing-grid { grid-template-columns: 1fr; }
+      .pricing-card.featured { transform: none; }
+      .pricing-card.featured:hover { transform: translateY(-6px); }
+      .footer-grid { grid-template-columns: 1fr 1fr; }
+    }
+
+    @media (max-width: 768px) {
+      .nav-menu { display: none; }
+      .hero-title { font-size: 32px; }
+      .section-title { font-size: 28px; }
+      .pain-grid { grid-template-columns: 1fr; }
+      .feature-grid { grid-template-columns: 1fr; }
+      .screenshot-grid { grid-template-columns: 1fr; }
+      .why-grid { grid-template-columns: 1fr; }
+      .footer-grid { grid-template-columns: 1fr; }
+      .cta-title { font-size: 28px; }
+      .nav-container, .hero-container, .container { padding: 0 20px; }
+    }
+  </style>
+</head>
+<body>
+  <div id="app">
+    <!-- ===== 顶部导航栏 ===== -->
+    <nav class="navbar" :class="{ scrolled: isScrolled }">
+      <div class="nav-container">
+        <div class="nav-logo" @click="scrollToTop">
+          <div class="nav-logo-icon">
+            <el-icon :size="22"><DataAnalysis /></el-icon>
+          </div>
+          <div>
+            <div class="nav-logo-text">建税盾</div>
+            <div class="nav-logo-sub">建筑经营管理报表系统</div>
+          </div>
+        </div>
+        <ul class="nav-menu">
+          <li><a href="#pain">核心痛点</a></li>
+          <li><a href="#features">功能介绍</a></li>
+          <li><a href="#screenshots">产品预览</a></li>
+          <li><a href="#why">为什么选我们</a></li>
+          <li><a href="#pricing">定价方案</a></li>
+        </ul>
+        <div class="nav-actions">
+          <el-button type="primary" size="large" @click="scrollToDemo">
+            <el-icon><VideoPlay /></el-icon>
+            <span>立即体验</span>
+          </el-button>
+        </div>
+      </div>
+    </nav>
+
+    <!-- ===== Hero 首屏 ===== -->
+    <section class="hero" id="hero">
+      <div class="hero-grid"></div>
+      <div class="hero-container">
+        <div class="hero-content fade-in-left">
+          <div class="hero-badge">
+            <span class="dot"></span>
+            <span>建筑工程行业专属 · 独立部署</span>
+          </div>
+          <h1 class="hero-title">
+            建筑老板<span class="highlight">看得懂的</span><br>
+            经营管理报表系统
+          </h1>
+          <p class="hero-subtitle">
+            财务只做一次账，Excel导入自动生成经营驾驶舱、项目利润表、资金日报、应收账龄分析...<br>
+            让每一个建筑老板都能实时掌握公司经营状况
+          </p>
+          <div class="hero-buttons">
+            <button class="btn-primary" @click="scrollToDemo">
+              <el-icon><VideoPlay /></el-icon>
+              立即体验演示
+            </button>
+            <button class="btn-secondary" @click="scrollToFeatures">
+              <el-icon><ArrowDown /></el-icon>
+              了解更多
+            </button>
+          </div>
+          <div class="hero-features">
+            <div class="hero-feature-item">
+              <el-icon class="check"><CircleCheck /></el-icon>
+              <span>Excel一键导入</span>
+            </div>
+            <div class="hero-feature-item">
+              <el-icon class="check"><CircleCheck /></el-icon>
+              <span>数据本地部署</span>
+            </div>
+            <div class="hero-feature-item">
+              <el-icon class="check"><CircleCheck /></el-icon>
+              <span>25年财税经验</span>
+            </div>
+          </div>
+        </div>
+        <div class="hero-preview fade-in-right">
+          <div class="browser-frame">
+            <div class="browser-header">
+              <span class="browser-dot red"></span>
+              <span class="browser-dot yellow"></span>
+              <span class="browser-dot green"></span>
+              <div class="browser-address">
+                <el-icon><Monitor /></el-icon>
+                <span style="margin-left:8px;">dashboard.jianshuidun.com</span>
+              </div>
+            </div>
+            <div class="browser-content">
+              <div class="dashboard-preview">
+                <div class="preview-card">
+                  <div class="preview-card-label">本月收入</div>
+                  <div class="preview-card-value blue">¥286万</div>
+                </div>
+                <div class="preview-card">
+                  <div class="preview-card-label">累计利润</div>
+                  <div class="preview-card-value green">¥42.8万</div>
+                </div>
+                <div class="preview-card">
+                  <div class="preview-card-label">资金余额</div>
+                  <div class="preview-card-value orange">¥168万</div>
+                </div>
+                <div class="preview-card">
+                  <div class="preview-card-label">应收账款</div>
+                  <div class="preview-card-value red">¥356万</div>
+                </div>
+              </div>
+              <div class="preview-chart-area">
+                <div style="font-size:13px; font-weight:600; color:var(--text-primary); margin-bottom:8px;">项目利润趋势</div>
+                <div class="preview-chart-bar">
+                  <div class="preview-bar"></div>
+                  <div class="preview-bar"></div>
+                  <div class="preview-bar"></div>
+                  <div class="preview-bar"></div>
+                  <div class="preview-bar"></div>
+                  <div class="preview-bar"></div>
+                </div>
+                <div style="display:flex; justify-content:space-between; font-size:10px; color:var(--text-light); margin-top:6px;">
+                  <span>1月</span><span>2月</span><span>3月</span><span>4月</span><span>5月</span><span>6月</span>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ===== 痛点区域 ===== -->
+    <section class="section section-gray" id="pain">
+      <div class="container">
+        <div class="section-header fade-in">
+          <span class="section-label">核心痛点</span>
+          <h2 class="section-title">建筑企业老板的四大经营难题</h2>
+          <p class="section-desc">你是不是也面临这些问题？干了多年工程，却始终看不清公司真实经营状况</p>
+        </div>
+        <div class="pain-grid">
+          <div class="pain-card fade-in" style="transition-delay: 0.1s;">
+            <div class="pain-icon">
+              <el-icon :size="28" color="#ef4444"><Reading /></el-icon>
+            </div>
+            <h3 class="pain-title">看不懂财务三大表</h3>
+            <p class="pain-desc">资产负债表、利润表、现金流量表太专业，老板只能追着会计问，数据永远慢半拍</p>
+          </div>
+          <div class="pain-card fade-in" style="transition-delay: 0.2s;">
+            <div class="pain-icon">
+              <el-icon :size="28" color="#f59e0b"><Calculator /></el-icon>
+            </div>
+            <h3 class="pain-title">项目利润算不清</h3>
+            <p class="pain-desc">多个项目同时进行，收入成本交叉，干到最后才知道哪个项目赚钱、哪个项目亏本</p>
+          </div>
+          <div class="pain-card fade-in" style="transition-delay: 0.3s;">
+            <div class="pain-icon">
+              <el-icon :size="28" color="#dc2626"><Money /></el-icon>
+            </div>
+            <h3 class="pain-title">应收款管不住</h3>
+            <p class="pain-desc">谁欠我钱、欠了多久、有没有风险，一笔糊涂账，账龄越长回款难度越大</p>
+          </div>
+          <div class="pain-card fade-in" style="transition-delay: 0.4s;">
+            <div class="pain-icon">
+              <el-icon :size="28" color="#ea580c"><Wallet /></el-icon>
+            </div>
+            <h3 class="pain-title">资金心里没底</h3>
+            <p class="pain-desc">明天够不够发工资、能不能付材料款，资金状况全凭感觉，风险随时可能爆发</p>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ===== 核心功能区域 ===== -->
+    <section class="section" id="features">
+      <div class="container">
+        <div class="section-header fade-in">
+          <span class="section-label">核心功能</span>
+          <h2 class="section-title">六大核心功能，直击经营管理痛点</h2>
+          <p class="section-desc">从财务数据到经营决策，建税盾帮你打通最后一公里</p>
+        </div>
+        <div class="feature-grid">
+          <div class="feature-card fade-in" style="transition-delay: 0.1s;">
+            <div class="feature-icon">
+              <el-icon><DataAnalysis /></el-icon>
+            </div>
+            <h3 class="feature-title">经营驾驶舱</h3>
+            <p class="feature-desc">一屏掌握公司收入、利润、资金、应收四大核心指标，经营状况一目了然，老板随时看、随时懂</p>
+          </div>
+          <div class="feature-card fade-in" style="transition-delay: 0.2s;">
+            <div class="feature-icon">
+              <el-icon><PieChart /></el-icon>
+            </div>
+            <h3 class="feature-title">项目利润表</h3>
+            <p class="feature-desc">按项目独立核算收入、成本、费用、利润，哪个项目赚、哪个项目亏，清清楚楚心中有数</p>
+          </div>
+          <div class="feature-card fade-in" style="transition-delay: 0.3s;">
+            <div class="feature-icon">
+              <el-icon><TrendCharts /></el-icon>
+            </div>
+            <h3 class="feature-title">资金日报</h3>
+            <p class="feature-desc">每日资金流入流出明细，余额趋势实时监控，提前预判资金缺口，确保公司现金流安全</p>
+          </div>
+          <div class="feature-card fade-in" style="transition-delay: 0.4s;">
+            <div class="feature-icon">
+              <el-icon><Histogram /></el-icon>
+            </div>
+            <h3 class="feature-title">应收账龄分析</h3>
+            <p class="feature-desc">5级账龄自动分级统计，哪家客户欠多久、风险多大一清二楚，回款催收有的放矢</p>
+          </div>
+          <div class="feature-card fade-in" style="transition-delay: 0.5s;">
+            <div class="feature-icon">
+              <el-icon><Upload /></el-icon>
+            </div>
+            <h3 class="feature-title">Excel一键导入</h3>
+            <p class="feature-desc">财务不用重复干活，科目余额表直接导入，自动生成全套管理报表，效率提升10倍</p>
+          </div>
+          <div class="feature-card fade-in" style="transition-delay: 0.6s;">
+            <div class="feature-icon">
+              <el-icon><Lock /></el-icon>
+            </div>
+            <h3 class="feature-title">独立部署</h3>
+            <p class="feature-desc">数据100%存储在客户本地服务器，不上传任何第三方平台，商业机密绝对安全可控</p>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ===== 产品截图展示区 ===== -->
+    <section class="section section-gray" id="screenshots">
+      <div class="container">
+        <div class="section-header fade-in">
+          <span class="section-label">产品预览</span>
+          <h2 class="section-title">专业界面，简单易用</h2>
+          <p class="section-desc">专为建筑行业设计的管理报表界面，财务数据秒变经营决策依据</p>
+        </div>
+        <div class="screenshot-grid">
+          <div class="screenshot-item fade-in-left">
+            <div class="screenshot-header">
+              <span class="browser-dot red"></span>
+              <span class="browser-dot yellow"></span>
+              <span class="browser-dot green"></span>
+              <span class="screenshot-title">项目利润分析表</span>
+            </div>
+            <div class="screenshot-body">
+              <div class="mock-table">
+                <div class="mock-table-header">
+                  <span>项目名称</span>
+                  <span>合同金额</span>
+                  <span>累计成本</span>
+                  <span>项目利润</span>
+                </div>
+                <div class="mock-table-row">
+                  <span>市民中心办公楼项目</span>
+                  <span>¥1,280万</span>
+                  <span>¥986万</span>
+                  <span class="profit">¥294万 (23%)</span>
+                </div>
+                <div class="mock-table-row">
+                  <span>滨江路道路改造工程</span>
+                  <span>¥860万</span>
+                  <span>¥720万</span>
+                  <span class="profit">¥140万 (16%)</span>
+                </div>
+                <div class="mock-table-row">
+                  <span>产业园标准厂房一期</span>
+                  <span>¥2,350万</span>
+                  <span>¥2,180万</span>
+                  <span class="profit">¥170万 (7%)</span>
+                </div>
+                <div class="mock-table-row">
+                  <span>老旧小区改造项目</span>
+                  <span>¥520万</span>
+                  <span>¥536万</span>
+                  <span class="loss">-¥16万 (-3%)</span>
+                </div>
+              </div>
+            </div>
+          </div>
+          <div class="screenshot-item fade-in-right">
+            <div class="screenshot-header">
+              <span class="browser-dot red"></span>
+              <span class="browser-dot yellow"></span>
+              <span class="browser-dot green"></span>
+              <span class="screenshot-title">应收账龄分析</span>
+            </div>
+            <div class="screenshot-body">
+              <div class="mock-chart-pie">
+                <div class="pie-chart"></div>
+                <div class="pie-legend">
+                  <div class="pie-legend-item">
+                    <span class="pie-legend-dot" style="background:#2563eb;"></span>
+                    <span>30天内 ¥128万</span>
+                  </div>
+                  <div class="pie-legend-item">
+                    <span class="pie-legend-dot" style="background:#22d3ee;"></span>
+                    <span>30-90天 ¥96万</span>
+                  </div>
+                  <div class="pie-legend-item">
+                    <span class="pie-legend-dot" style="background:#f59e0b;"></span>
+                    <span>90-180天 ¥78万</span>
+                  </div>
+                  <div class="pie-legend-item">
+                    <span class="pie-legend-dot" style="background:#ef4444;"></span>
+                    <span>180-365天 ¥38万</span>
+                  </div>
+                  <div class="pie-legend-item">
+                    <span class="pie-legend-dot" style="background:#94a3b8;"></span>
+                    <span>1年以上 ¥16万</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ===== 为什么选我们 ===== -->
+    <section class="section section-dark" id="why">
+      <div class="container">
+        <div class="section-header fade-in">
+          <span class="section-label">为什么选我们</span>
+          <h2 class="section-title">专业、安全、实惠的建筑行业报表方案</h2>
+          <p class="section-desc">25年财税实战经验沉淀，专为建筑企业量身打造</p>
+        </div>
+        <div class="why-grid">
+          <div class="why-card fade-in" style="transition-delay: 0.1s;">
+            <div class="why-icon">
+              <el-icon><Medal /></el-icon>
+            </div>
+            <h3 class="why-title">25年财税实战</h3>
+            <p class="why-desc">慧根堂财税联盟出品，深耕建筑行业财税领域25年，深知行业痛点与需求</p>
+          </div>
+          <div class="why-card fade-in" style="transition-delay: 0.2s;">
+            <div class="why-icon">
+              <el-icon"><Collection /></el-icon>
+            </div>
+            <h3 class="why-title">49个标准科目</h3>
+            <p class="why-desc">预置建筑行业49个标准会计科目，开箱即用，无需复杂配置即可生成报表</p>
+          </div>
+          <div class="why-card fade-in" style="transition-delay: 0.3s;">
+            <div class="why-icon">
+              <el-icon"><Shield /></el-icon>
+            </div>
+            <h3 class="why-title">数据本地部署</h3>
+            <p class="why-desc">独立部署在客户自己服务器，数据100%掌控在手中，不上传任何云端平台</p>
+          </div>
+          <div class="why-card fade-in" style="transition-delay: 0.4s;">
+            <div class="why-icon">
+              <el-icon"><PriceTag /></el-icon>
+            </div>
+            <h3 class="why-title">极致性价比</h3>
+            <p class="why-desc">价格只有传统ERP的零头，用最少的投入获得专业级的经营管理报表能力</p>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ===== 定价区域 ===== -->
+    <section class="section section-gray" id="pricing">
+      <div class="container">
+        <div class="section-header fade-in">
+          <span class="section-label">定价方案</span>
+          <h2 class="section-title">灵活方案，按需选择</h2>
+          <p class="section-desc">不同规模建筑企业的理想选择，总有一款适合你</p>
+        </div>
+        <div class="pricing-grid">
+          <div class="pricing-card fade-in" style="transition-delay: 0.1s;">
+            <div class="pricing-name">MVP版</div>
+            <div class="pricing-desc">适合小型建筑企业起步使用</div>
+            <div class="pricing-price">
+              <div class="pricing-price-text">
+                咨询
+                <span class="unit">/年</span>
+              </div>
+            </div>
+            <ul class="pricing-features">
+              <li>
+                <el-icon class="check-icon"><CircleCheckFilled /></el-icon>
+                经营驾驶舱
+              </li>
+              <li>
+                <el-icon class="check-icon"><CircleCheckFilled /></el-icon>
+                项目利润表（限5个项目）
+              </li>
+              <li>
+                <el-icon class="check-icon"><CircleCheckFilled /></el-icon>
+                资金日报
+              </li>
+              <li>
+                <el-icon class="check-icon"><CircleCheckFilled /></el-icon>
+                Excel导入功能
+              </li>
+              <li>
+                <el-icon class="check-icon"><CircleCheckFilled /></el-icon>
+                在线技术支持
+              </li>
+              <li>
+                <el-icon class="check-icon"><CircleCheckFilled /></el-icon>
+                单用户账号
+              </li>
+            </ul>
+            <button class="pricing-btn" @click="handleContact">咨询报价</button>
+          </div>
+          <div class="pricing-card featured fade-in" style="transition-delay: 0.2s;">
+            <div class="pricing-badge">最受欢迎</div>
+            <div class="pricing-name">标准版</div>
+            <div class="pricing-desc">适合中型建筑企业全面使用</div>
+            <div class="pricing-price">
+              <div class="pricing-price-text">
+                咨询
+                <span class="unit">/年</span>
+              </div>
+            </div>
+            <ul class="pricing-features">
+              <li>
+                <el-icon class="check-icon"><CircleCheckFilled /></el-icon>
+                全部MVP版功能
+              </li>
+              <li>
+                <el-icon class="check-icon"><CircleCheckFilled /></el-icon>
+                项目利润表（不限项目数）
+              </li>
+              <li>
+                <el-icon class="check-icon"><CircleCheckFilled /></el-icon>
+                应收账龄分析
+              </li>
+              <li>
+                <el-icon class="check-icon"><CircleCheckFilled /></el-icon>
+                多维度成本分析
+              </li>
+              <li>
+                <el-icon class="check-icon"><CircleCheckFilled /></el-icon>
+                5个用户账号
+              </li>
+              <li>
+                <el-icon class="check-icon"><CircleCheckFilled /></el-icon>
+                专属客户经理
+              </li>
+            </ul>
+            <button class="pricing-btn" @click="handleContact">咨询报价</button>
+          </div>
+          <div class="pricing-card fade-in" style="transition-delay: 0.3s;">
+            <div class="pricing-name">企业版</div>
+            <div class="pricing-desc">适合大型建筑集团定制化需求</div>
+            <div class="pricing-price">
+              <div class="pricing-price-text">
+                咨询
+                <span class="unit">/年</span>
+              </div>
+            </div>
+            <ul class="pricing-features">
+              <li>
+                <el-icon class="check-icon"><CircleCheckFilled /></el-icon>
+                全部标准版功能
+              </li>
+              <li>
+                <el-icon class="check-icon"><CircleCheckFilled /></el-icon>
+                独立服务器部署
+              </li>
+              <li>
+                <el-icon class="check-icon"><CircleCheckFilled /></el-icon>
+                定制化报表开发
+              </li>
+              <li>
+                <el-icon class="check-icon"><CircleCheckFilled /></el-icon>
+                财务系统对接
+              </li>
+              <li>
+                <el-icon class="check-icon"><CircleCheckFilled /></el-icon>
+                不限用户账号
+              </li>
+              <li>
+                <el-icon class="check-icon"><CircleCheckFilled /></el-icon>
+                7×24小时专属支持
+              </li>
+            </ul>
+            <button class="pricing-btn" @click="handleContact">咨询报价</button>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ===== CTA 演示区 ===== -->
+    <section class="section cta-section" id="demo">
+      <div class="container">
+        <div class="cta-content fade-in">
+          <h2 class="cta-title">立即体验建税盾演示系统</h2>
+          <p class="cta-desc">
+            3分钟了解建税盾如何帮你解决建筑企业经营管理难题<br>
+            财务只做一次账，老板看懂经营账
+          </p>
+          <button class="cta-btn" @click="handleDemo">
+            <el-icon><VideoPlay /></el-icon>
+            进入演示系统
+            <el-icon><ArrowRight /></el-icon>
+          </button>
+        </div>
+      </div>
+    </section>
+
+    <!-- ===== Footer ===== -->
+    <footer class="footer">
+      <div class="container">
+        <div class="footer-grid">
+          <div class="footer-brand">
+            <div class="footer-logo">
+              <div class="footer-logo-icon">
+                <el-icon><DataAnalysis /></el-icon>
+              </div>
+              <span class="footer-logo-text">建税盾</span>
+            </div>
+            <p class="footer-slogan">
+              建筑工程行业专属的经营管理报表SaaS系统<br>
+              让每一个建筑老板都能看懂经营数据
+            </p>
+            <div style="display:flex; gap:12px; margin-top:8px;">
+              <el-icon :size="20" style="cursor:pointer; opacity:0.6;"><ChatDotRound /></el-icon>
+              <el-icon :size="20" style="cursor:pointer; opacity:0.6;"><Phone /></el-icon>
+              <el-icon :size="20" style="cursor:pointer; opacity:0.6;"><Message /></el-icon>
+            </div>
+          </div>
+          <div class="footer-col">
+            <h4>产品功能</h4>
+            <ul>
+              <li><a href="#features">经营驾驶舱</a></li>
+              <li><a href="#features">项目利润表</a></li>
+              <li><a href="#features">资金日报</a></li>
+              <li><a href="#features">应收账龄分析</a></li>
+            </ul>
+          </div>
+          <div class="footer-col">
+            <h4>解决方案</h4>
+            <ul>
+              <li><a href="#pain">建筑施工企业</a></li>
+              <li><a href="#pain">工程装饰公司</a></li>
+              <li><a href="#pain">市政工程公司</a></li>
+              <li><a href="#pain">房地产开发</a></li>
+            </ul>
+          </div>
+          <div class="footer-col">
+            <h4>联系我们</h4>
+            <div class="footer-contact-item">
+              <el-icon><Phone /></el-icon>
+              <span>400-xxx-xxxx</span>
+            </div>
+            <div class="footer-contact-item">
+              <el-icon><Message /></el-icon>
+              <span>contact@jianshuidun.com</span>
+            </div>
+            <div class="footer-contact-item">
+              <el-icon><Location /></el-icon>
+              <span>慧根堂财税联盟</span>
+            </div>
+          </div>
+        </div>
+        <div class="footer-bottom">
+          <p>© 2024 建税盾 · 慧根堂财税联盟出品 · 保留所有权利</p>
+          <p>备案号：京ICP备XXXXXXXX号-1 | 增值电信业务经营许可证：京B2-XXXXXXXX</p>
+        </div>
+      </div>
+    </footer>
+  </div>
+
+  <script>
+    const { createApp, ref, onMounted, onUnmounted } = Vue;
+
+    const App = {
+      setup() {
+        const isScrolled = ref(false);
+
+        // 滚动监听 - 导航栏阴影
+        const handleScroll = () => {
+          isScrolled.value = window.scrollY > 20;
+          // 滚动淡入动画
+          const fadeElements = document.querySelectorAll('.fade-in, .fade-in-left, .fade-in-right');
+          fadeElements.forEach(el => {
+            const rect = el.getBoundingClientRect();
+            const isVisible = rect.top < window.innerHeight - 100;
+            if (isVisible) {
+              el.classList.add('visible');
+            }
+          });
+        };
+
+        // 滚动到顶部
+        const scrollToTop = () => {
+          window.scrollTo({ top: 0, behavior: 'smooth' });
+        };
+
+        // 滚动到功能区
+        const scrollToFeatures = () => {
+          document.getElementById('features').scrollIntoView({ behavior: 'smooth' });
+        };
+
+        // 滚动到演示区
+        const scrollToDemo = () => {
+          document.getElementById('demo').scrollIntoView({ behavior: 'smooth' });
+        };
+
+        // 联系咨询
+        const handleContact = () => {
+          ElementPlus.ElMessage({
+            message: '感谢您的关注！请拨打 400-xxx-xxxx 或发送邮件至 contact@jianshuidun.com',
+            type: 'info',
+            duration: 4000,
+            showClose: true
+          });
+        };
+
+        // 演示系统
+        const handleDemo = () => {
+          ElementPlus.ElMessage({
+            message: '演示系统即将开放，敬请期待！',
+            type: 'success',
+            duration: 3000
+          });
+        };
+
+        onMounted(() => {
+          window.addEventListener('scroll', handleScroll);
+          handleScroll(); // 初始检查
+        });
+
+        onUnmounted(() => {
+          window.removeEventListener('scroll', handleScroll);
+        });
+
+        return {
+          isScrolled,
+          scrollToTop,
+          scrollToFeatures,
+          scrollToDemo,
+          handleContact,
+          handleDemo
+        };
+      }
+    };
+
+    const app = createApp(App);
+    app.use(ElementPlus);
+    
+    // 注册所有图标
+    for (const [key, component] of Object.entries(ElementPlusIconsVue)) {
+      app.component(key, component);
+    }
+    
+    app.mount('#app');
+  </script>
+</body>
+</html>

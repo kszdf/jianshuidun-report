@@ -1,0 +1,964 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>建税盾·建筑经营管理报表系统（演示版）</title>
+  <link rel="stylesheet" href="https://unpkg.com/element-plus/dist/index.css">
+  <script src="https://unpkg.com/vue@3/dist/vue.global.js"></script>
+  <script src="https://unpkg.com/element-plus"></script>
+  <script src="https://unpkg.com/@element-plus/icons-vue"></script>
+  <script src="https://cdn.jsdelivr.net/npm/echarts@5/dist/echarts.min.js"></script>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    html, body { height: 100%; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif; background: #f5f7fa; }
+    #app { height: 100%; }
+    .demo-badge {
+      position: fixed;
+      top: 10px;
+      right: 10px;
+      background: #e6a23c;
+      color: #fff;
+      padding: 4px 12px;
+      border-radius: 4px;
+      font-size: 12px;
+      z-index: 9999;
+    }
+
+    /* 登录页 */
+    .login-page {
+      height: 100vh;
+      background: linear-gradient(135deg, #1a2942 0%, #2d4a6f 50%, #3b5998 100%);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+    .login-box {
+      width: 400px;
+      background: #fff;
+      border-radius: 12px;
+      padding: 40px;
+      box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+    }
+    .login-title {
+      text-align: center;
+      font-size: 24px;
+      font-weight: 600;
+      color: #1a2942;
+      margin-bottom: 8px;
+    }
+    .login-subtitle {
+      text-align: center;
+      color: #909399;
+      font-size: 14px;
+      margin-bottom: 30px;
+    }
+    .login-logo { text-align: center; margin-bottom: 20px; }
+    .login-logo-icon {
+      width: 60px;
+      height: 60px;
+      background: linear-gradient(135deg, #409eff, #67c23a);
+      border-radius: 12px;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      color: #fff;
+      font-size: 28px;
+      font-weight: bold;
+    }
+
+    /* 主布局 */
+    .main-layout { height: 100vh; display: flex; flex-direction: column; }
+    .main-header {
+      height: 60px;
+      background: #fff;
+      border-bottom: 1px solid #e4e7ed;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 0 20px;
+      box-shadow: 0 1px 4px rgba(0,21,41,.08);
+    }
+    .header-left { display: flex; align-items: center; gap: 16px; }
+    .logo-text { font-size: 18px; font-weight: 600; color: #1a2942; }
+    .logo-badge {
+      background: linear-gradient(135deg, #409eff, #67c23a);
+      color: #fff;
+      padding: 2px 8px;
+      border-radius: 4px;
+      font-size: 12px;
+      font-weight: normal;
+    }
+    .header-right { display: flex; align-items: center; gap: 16px; }
+    .user-info { display: flex; align-items: center; gap: 8px; cursor: pointer; }
+    .user-avatar {
+      width: 32px; height: 32px; border-radius: 50%;
+      background: #409eff; color: #fff;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 14px;
+    }
+
+    .main-body { flex: 1; display: flex; overflow: hidden; }
+    .sidebar {
+      width: 220px;
+      background: #1f2d3d;
+      overflow-y: auto;
+    }
+    .sidebar .el-menu { border-right: none; }
+    .content-area {
+      flex: 1;
+      overflow-y: auto;
+      padding: 20px;
+    }
+    .page-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 20px;
+    }
+    .page-title { font-size: 20px; font-weight: 600; color: #303133; }
+    .page-subtitle { font-size: 13px; color: #909399; margin-top: 4px; }
+
+    /* 卡片 */
+    .stat-cards { display: grid; grid-template-columns: repeat(4, 1fr); gap: 16px; margin-bottom: 20px; }
+    .stat-card {
+      background: #fff;
+      border-radius: 8px;
+      padding: 20px;
+      box-shadow: 0 2px 12px rgba(0,0,0,0.06);
+    }
+    .stat-card-title { font-size: 14px; color: #909399; margin-bottom: 8px; }
+    .stat-card-value { font-size: 28px; font-weight: 600; color: #303133; }
+    .stat-card-unit { font-size: 14px; color: #909399; margin-left: 4px; }
+    .stat-card-change { font-size: 12px; margin-top: 6px; }
+    .stat-card-change.up { color: #67c23a; }
+    .stat-card-change.down { color: #f56c6c; }
+
+    .chart-row { display: grid; grid-template-columns: 2fr 1fr; gap: 16px; margin-bottom: 20px; }
+    .chart-box {
+      background: #fff;
+      border-radius: 8px;
+      padding: 20px;
+      box-shadow: 0 2px 12px rgba(0,0,0,0.06);
+    }
+    .chart-title { font-size: 16px; font-weight: 600; color: #303133; margin-bottom: 16px; }
+    .chart-container { width: 100%; height: 300px; }
+
+    .full-chart {
+      background: #fff;
+      border-radius: 8px;
+      padding: 20px;
+      box-shadow: 0 2px 12px rgba(0,0,0,0.06);
+      margin-bottom: 20px;
+    }
+
+    .table-card {
+      background: #fff;
+      border-radius: 8px;
+      padding: 20px;
+      box-shadow: 0 2px 12px rgba(0,0,0,0.06);
+    }
+    .table-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 16px;
+    }
+
+    .profit-summary {
+      display: grid;
+      grid-template-columns: repeat(5, 1fr);
+      gap: 12px;
+      margin-bottom: 20px;
+    }
+    .profit-item {
+      background: #f8f9fb;
+      border-radius: 6px;
+      padding: 14px;
+      text-align: center;
+    }
+    .profit-item-label { font-size: 12px; color: #909399; margin-bottom: 6px; }
+    .profit-item-value { font-size: 18px; font-weight: 600; color: #303133; }
+    .profit-item-value.green { color: #67c23a; }
+    .profit-item-value.red { color: #f56c6c; }
+    .profit-item-value.blue { color: #409eff; }
+
+    .aging-blocks { display: grid; grid-template-columns: repeat(5, 1fr); gap: 12px; margin-bottom: 20px; }
+    .aging-block {
+      background: #fff;
+      border-radius: 8px;
+      padding: 20px;
+      text-align: center;
+      box-shadow: 0 2px 12px rgba(0,0,0,0.06);
+      border-left: 4px solid;
+    }
+    .aging-block.level1 { border-left-color: #67c23a; }
+    .aging-block.level2 { border-left-color: #e6a23c; }
+    .aging-block.level3 { border-left-color: #f56c6c; }
+    .aging-block.level4 { border-left-color: #c0392b; }
+    .aging-block.level5 { border-left-color: #8e44ad; }
+    .aging-block-title { font-size: 13px; color: #909399; margin-bottom: 8px; }
+    .aging-block-value { font-size: 24px; font-weight: 600; color: #303133; }
+    .aging-block-count { font-size: 12px; color: #909399; margin-top: 4px; }
+
+    .fund-row { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-bottom: 20px; }
+    .fund-card {
+      background: #fff;
+      border-radius: 8px;
+      padding: 20px;
+      box-shadow: 0 2px 12px rgba(0,0,0,0.06);
+    }
+    .fund-card-title { font-size: 16px; font-weight: 600; color: #303133; margin-bottom: 12px; }
+    .fund-big-number { font-size: 36px; font-weight: 700; color: #67c23a; margin-bottom: 4px; }
+    .fund-big-number.red { color: #f56c6c; }
+    .fund-sub { font-size: 13px; color: #909399; }
+  </style>
+</head>
+<body>
+<div id="app">
+  <div class="demo-badge">演示版 · 数据仅供展示</div>
+
+  <!-- 登录页 -->
+  <div v-if="!isLoggedIn" class="login-page">
+    <div class="login-box">
+      <div class="login-logo">
+        <div class="login-logo-icon">建</div>
+      </div>
+      <div class="login-title">建税盾</div>
+      <div class="login-subtitle">建筑工程企业经营管理报表系统</div>
+      <el-form>
+        <el-form-item>
+          <el-input v-model="loginForm.username" placeholder="用户名 (演示: boss)" prefix-icon="User" />
+        </el-form-item>
+        <el-form-item>
+          <el-input v-model="loginForm.password" type="password" placeholder="密码 (演示: 123456)" prefix-icon="Lock" />
+        </el-form-item>
+        <el-button type="primary" style="width: 100%" @click="doLogin">登 录</el-button>
+      </el-form>
+      <p style="text-align:center; color:#909399; font-size:12px; margin-top:20px;">
+        演示版本，任意输入即可登录体验
+      </p>
+    </div>
+  </div>
+
+  <!-- 主界面 -->
+  <div v-else class="main-layout">
+    <div class="main-header">
+      <div class="header-left">
+        <span class="logo-text">建税盾 <span class="logo-badge">建筑经营报表</span></span>
+      </div>
+      <div class="header-right">
+        <el-dropdown>
+          <div class="user-info">
+            <div class="user-avatar">张</div>
+            <span>{{ currentUser }}</span>
+          </div>
+          <template #dropdown>
+            <el-dropdown-menu>
+              <el-dropdown-item @click="logout">退出登录</el-dropdown-item>
+            </el-dropdown-menu>
+          </template>
+        </el-dropdown>
+      </div>
+    </div>
+
+    <div class="main-body">
+      <div class="sidebar">
+        <el-menu :default-active="activeMenu" background-color="#1f2d3d" text-color="#bfcbd9" active-text-color="#409eff" @select="handleMenuSelect">
+          <el-menu-item index="dashboard">
+            <el-icon><DataLine /></el-icon>
+            <span>驾驶舱</span>
+          </el-menu-item>
+          <el-menu-item index="profit">
+            <el-icon><TrendCharts /></el-icon>
+            <span>项目利润表</span>
+          </el-menu-item>
+          <el-menu-item index="fund">
+            <el-icon><Wallet /></el-icon>
+            <span>资金日报</span>
+          </el-menu-item>
+          <el-menu-item index="aging">
+            <el-icon><Clock /></el-icon>
+            <span>应收账龄分析</span>
+          </el-menu-item>
+          <el-menu-item index="projects">
+            <el-icon><OfficeBuilding /></el-icon>
+            <span>项目档案</span>
+          </el-menu-item>
+          <el-menu-item index="import">
+            <el-icon><Upload /></el-icon>
+            <span>数据导入</span>
+          </el-menu-item>
+          <el-menu-item index="settings">
+            <el-icon><Setting /></el-icon>
+            <span>系统设置</span>
+          </el-menu-item>
+        </el-menu>
+      </div>
+
+      <div class="content-area">
+        <!-- 驾驶舱 -->
+        <div v-if="activeMenu === 'dashboard'">
+          <div class="page-header">
+            <div>
+              <div class="page-title">经营驾驶舱</div>
+              <div class="page-subtitle">江苏乾中建设工程有限公司 · 2026年6月</div>
+            </div>
+            <div>
+              <el-date-picker v-model="dashboardMonth" type="month" placeholder="选择月份" size="default" />
+            </div>
+          </div>
+
+          <div class="stat-cards">
+            <div class="stat-card">
+              <div class="stat-card-title">本月营业收入</div>
+              <div class="stat-card-value">1,286.50<span class="stat-card-unit">万元</span></div>
+              <div class="stat-card-change up">↑ 较上月增长 12.3%</div>
+            </div>
+            <div class="stat-card">
+              <div class="stat-card-title">本月净利润</div>
+              <div class="stat-card-value">86.72<span class="stat-card-unit">万元</span></div>
+              <div class="stat-card-change up">↑ 较上月增长 8.5%</div>
+            </div>
+            <div class="stat-card">
+              <div class="stat-card-title">应收账款总额</div>
+              <div class="stat-card-value">3,452.18<span class="stat-card-unit">万元</span></div>
+              <div class="stat-card-change down">↑ 较上月增加 5.2%（关注回收）</div>
+            </div>
+            <div class="stat-card">
+              <div class="stat-card-title">账面资金余额</div>
+              <div class="stat-card-value">687.34<span class="stat-card-unit">万元</span></div>
+              <div class="stat-card-change up">↑ 较月初增加 42.1万元</div>
+            </div>
+          </div>
+
+          <div class="chart-row">
+            <div class="chart-box">
+              <div class="chart-title">营业收入趋势（近12个月）</div>
+              <div ref="revenueChart" class="chart-container"></div>
+            </div>
+            <div class="chart-box">
+              <div class="chart-title">各项目收入占比</div>
+              <div ref="projectPieChart" class="chart-container"></div>
+            </div>
+          </div>
+
+          <div class="chart-row">
+            <div class="chart-box">
+              <div class="chart-title">成本费用构成</div>
+              <div ref="costChart" class="chart-container"></div>
+            </div>
+            <div class="chart-box">
+              <div class="chart-title">利润率走势</div>
+              <div ref="profitChart" class="chart-container"></div>
+            </div>
+          </div>
+
+          <div class="table-card">
+            <div class="table-header">
+              <div class="chart-title">在建项目概况</div>
+            </div>
+            <el-table :data="projectOverview" stripe>
+              <el-table-column prop="name" label="项目名称" min-width="180" />
+              <el-table-column prop="manager" label="项目经理" width="100" align="center" />
+              <el-table-column prop="contractAmount" label="合同金额(万)" width="120" align="right" />
+              <el-table-column prop="incomeAmount" label="已确认收入(万)" width="130" align="right" />
+              <el-table-column prop="costAmount" label="已发生成本(万)" width="130" align="right" />
+              <el-table-column prop="profit" label="利润(万)" width="110" align="right">
+                <template #default="{ row }">
+                  <span :style="{ color: row.profit >= 0 ? '#67c23a' : '#f56c6c' }">{{ row.profit }}</span>
+                </template>
+              </el-table-column>
+              <el-table-column prop="profitRate" label="利润率" width="90" align="center">
+                <template #default="{ row }">
+                  <el-tag :type="row.profitRate >= 8 ? 'success' : row.profitRate >= 5 ? 'warning' : 'danger'" size="small">
+                    {{ row.profitRate }}%
+                  </el-tag>
+                </template>
+              </el-table-column>
+              <el-table-column prop="progress" label="工程进度" width="140">
+                <template #default="{ row }">
+                  <el-progress :percentage="row.progress" :stroke-width="12" />
+                </template>
+              </el-table-column>
+            </el-table>
+          </div>
+        </div>
+
+        <!-- 项目利润表 -->
+        <div v-if="activeMenu === 'profit'">
+          <div class="page-header">
+            <div>
+              <div class="page-title">项目利润表</div>
+              <div class="page-subtitle">按项目维度核算收入、成本、利润</div>
+            </div>
+            <div>
+              <el-select v-model="profitPeriod" style="width: 150px; margin-right: 10px;">
+                <el-option label="本月" value="month" />
+                <el-option label="本季度" value="quarter" />
+                <el-option label="本年累计" value="year" />
+              </el-select>
+              <el-button type="primary" :icon="Download">导出Excel</el-button>
+            </div>
+          </div>
+
+          <div class="profit-summary">
+            <div class="profit-item">
+              <div class="profit-item-label">营业收入合计</div>
+              <div class="profit-item-value blue">1,286.50万</div>
+            </div>
+            <div class="profit-item">
+              <div class="profit-item-label">营业成本合计</div>
+              <div class="profit-item-value red">1,098.32万</div>
+            </div>
+            <div class="profit-item">
+              <div class="profit-item-label">税金及附加</div>
+              <div class="profit-item-value">38.60万</div>
+            </div>
+            <div class="profit-item">
+              <div class="profit-item-label">期间费用</div>
+              <div class="profit-item-value">62.86万</div>
+            </div>
+            <div class="profit-item">
+              <div class="profit-item-label">净利润</div>
+              <div class="profit-item-value green">86.72万</div>
+            </div>
+          </div>
+
+          <div class="table-card">
+            <el-table :data="profitTable" stripe border>
+              <el-table-column prop="name" label="项目名称" min-width="160" fixed="left" />
+              <el-table-column prop="income" label="营业收入" width="110" align="right" />
+              <el-table-column prop="cost" label="营业成本" width="110" align="right" />
+              <el-table-column prop="grossProfit" label="毛利" width="100" align="right">
+                <template #default="{ row }">
+                  <span :style="{ color: row.grossProfit >= 0 ? '#67c23a' : '#f56c6c' }">{{ row.grossProfit }}</span>
+                </template>
+              </el-table-column>
+              <el-table-column prop="grossRate" label="毛利率" width="90" align="center">
+                <template #default="{ row }">{{ row.grossRate }}%</template>
+              </el-table-column>
+              <el-table-column prop="tax" label="税金" width="90" align="right" />
+              <el-table-column prop="expense" label="期间费用" width="100" align="right" />
+              <el-table-column prop="netProfit" label="净利润" width="100" align="right">
+                <template #default="{ row }">
+                  <span :style="{ color: row.netProfit >= 0 ? '#67c23a' : '#f56c6c' }">{{ row.netProfit }}</span>
+                </template>
+              </el-table-column>
+              <el-table-column prop="netRate" label="净利率" width="90" align="center">
+                <template #default="{ row }">
+                  <el-tag :type="row.netRate >= 8 ? 'success' : row.netRate >= 5 ? 'warning' : 'danger'" size="small">
+                    {{ row.netRate }}%
+                  </el-tag>
+                </template>
+              </el-table-column>
+            </el-table>
+          </div>
+        </div>
+
+        <!-- 资金日报 -->
+        <div v-if="activeMenu === 'fund'">
+          <div class="page-header">
+            <div>
+              <div class="page-title">资金日报</div>
+              <div class="page-subtitle">每日资金流入流出及余额变动</div>
+            </div>
+            <div>
+              <el-date-picker v-model="fundDate" type="date" placeholder="选择日期" />
+            </div>
+          </div>
+
+          <div class="fund-row">
+            <div class="fund-card">
+              <div class="fund-card-title">今日资金结余</div>
+              <div class="fund-big-number">687.34 万</div>
+              <div class="fund-sub">较昨日 +12.50万元 (+1.85%)</div>
+            </div>
+            <div class="fund-card">
+              <div class="fund-card-title">今日净流入</div>
+              <div class="fund-big-number">+12.50 万</div>
+              <div class="fund-sub">流入 45.80万 · 流出 33.30万</div>
+            </div>
+          </div>
+
+          <div class="full-chart">
+            <div class="chart-title">资金余额走势（近30天）</div>
+            <div ref="fundTrendChart" style="width: 100%; height: 280px;"></div>
+          </div>
+
+          <div class="chart-row">
+            <div class="chart-box">
+              <div class="chart-title">今日资金流入构成</div>
+              <div ref="fundInChart" class="chart-container"></div>
+            </div>
+            <div class="chart-box">
+              <div class="chart-title">今日资金流出构成</div>
+              <div ref="fundOutChart" class="chart-container"></div>
+            </div>
+          </div>
+
+          <div class="table-card">
+            <div class="table-header">
+              <div class="chart-title">今日资金明细</div>
+            </div>
+            <el-table :data="fundDetails" stripe size="default">
+              <el-table-column prop="time" label="时间" width="100" />
+              <el-table-column prop="type" label="类型" width="100" align="center">
+                <template #default="{ row }">
+                  <el-tag :type="row.direction === 'in' ? 'success' : 'danger'" size="small">
+                    {{ row.type }}
+                  </el-tag>
+                </template>
+              </el-table-column>
+              <el-table-column prop="project" label="关联项目" min-width="160" />
+              <el-table-column prop="summary" label="摘要" min-width="180" />
+              <el-table-column prop="amount" label="金额(元)" width="130" align="right">
+                <template #default="{ row }">
+                  <span :style="{ color: row.direction === 'in' ? '#67c23a' : '#f56c6c' }">
+                    {{ row.direction === 'in' ? '+' : '-' }}{{ row.amount }}
+                  </span>
+                </template>
+              </el-table-column>
+              <el-table-column prop="account" label="账户" width="120" />
+            </el-table>
+          </div>
+        </div>
+
+        <!-- 应收账龄 -->
+        <div v-if="activeMenu === 'aging'">
+          <div class="page-header">
+            <div>
+              <div class="page-title">应收账款账龄分析</div>
+              <div class="page-subtitle">按账龄区间统计应收款项，监控回款风险</div>
+            </div>
+            <div>
+              <el-button type="primary" :icon="Download">导出账龄表</el-button>
+            </div>
+          </div>
+
+          <div class="aging-blocks">
+            <div class="aging-block level1">
+              <div class="aging-block-title">1年以内</div>
+              <div class="aging-block-value">1,856.40万</div>
+              <div class="aging-block-count">占比 53.8% · 28笔</div>
+            </div>
+            <div class="aging-block level2">
+              <div class="aging-block-title">1-2年</div>
+              <div class="aging-block-value">782.50万</div>
+              <div class="aging-block-count">占比 22.7% · 15笔</div>
+            </div>
+            <div class="aging-block level3">
+              <div class="aging-block-title">2-3年</div>
+              <div class="aging-block-value">456.80万</div>
+              <div class="aging-block-count">占比 13.2% · 8笔</div>
+            </div>
+            <div class="aging-block level4">
+              <div class="aging-block-title">3-5年</div>
+              <div class="aging-block-value">268.30万</div>
+              <div class="aging-block-count">占比 7.8% · 5笔</div>
+            </div>
+            <div class="aging-block level5">
+              <div class="aging-block-title">5年以上</div>
+              <div class="aging-block-value">88.18万</div>
+              <div class="aging-block-count">占比 2.5% · 3笔</div>
+            </div>
+          </div>
+
+          <div class="full-chart">
+            <div class="chart-title">账龄分布</div>
+            <div ref="agingChart" style="width: 100%; height: 280px;"></div>
+          </div>
+
+          <div class="table-card">
+            <div class="table-header">
+              <div class="chart-title">应收账款明细（按账龄降序）</div>
+              <el-input v-model="agingSearch" placeholder="搜索客户/项目" style="width: 220px;" />
+            </div>
+            <el-table :data="agingList" stripe>
+              <el-table-column prop="customer" label="客户单位" min-width="200" />
+              <el-table-column prop="project" label="对应项目" min-width="160" />
+              <el-table-column prop="amount" label="应收金额(万)" width="120" align="right" />
+              <el-table-column prop="ageDays" label="账龄(天)" width="100" align="center" />
+              <el-table-column prop="level" label="账龄区间" width="120" align="center">
+                <template #default="{ row }">
+                  <el-tag :type="row.levelType" size="small">{{ row.level }}</el-tag>
+                </template>
+              </el-table-column>
+              <el-table-column prop="risk" label="风险等级" width="100" align="center">
+                <template #default="{ row }">
+                  <el-tag :type="row.riskType" effect="dark" size="small">{{ row.risk }}</el-tag>
+                </template>
+              </el-table-column>
+              <el-table-column prop="collector" label="责任人" width="100" align="center" />
+            </el-table>
+          </div>
+        </div>
+
+        <!-- 项目档案 -->
+        <div v-if="activeMenu === 'projects'">
+          <div class="page-header">
+            <div>
+              <div class="page-title">项目档案</div>
+              <div class="page-subtitle">管理所有在建及已完工项目</div>
+            </div>
+            <el-button type="primary" :icon="Plus">新增项目</el-button>
+          </div>
+          <div class="table-card">
+            <el-table :data="allProjects" stripe>
+              <el-table-column prop="code" label="项目编号" width="130" />
+              <el-table-column prop="name" label="项目名称" min-width="180" />
+              <el-table-column prop="customer" label="建设单位" min-width="180" />
+              <el-table-column prop="manager" label="项目经理" width="100" align="center" />
+              <el-table-column prop="contractAmount" label="合同金额(万)" width="120" align="right" />
+              <el-table-column prop="startDate" label="开工日期" width="110" align="center" />
+              <el-table-column prop="endDate" label="预计竣工" width="110" align="center" />
+              <el-table-column prop="status" label="状态" width="100" align="center">
+                <template #default="{ row }">
+                  <el-tag :type="row.status === '在建' ? 'primary' : row.status === '已完工' ? 'success' : 'info'" size="small">
+                    {{ row.status }}
+                  </el-tag>
+                </template>
+              </el-table-column>
+            </el-table>
+          </div>
+        </div>
+
+        <!-- 数据导入 -->
+        <div v-if="activeMenu === 'import'">
+          <div class="page-header">
+            <div>
+              <div class="page-title">数据导入</div>
+              <div class="page-subtitle">上传Excel财务数据，自动生成管理报表</div>
+            </div>
+          </div>
+          <div class="table-card" style="text-align: center; padding: 60px 20px;">
+            <el-empty description="演示版不支持真实数据导入">
+              <p style="color: #909399; margin-bottom: 20px;">正式版支持：科目余额表、凭证表、往来明细等Excel一键导入</p>
+              <el-button type="primary">了解正式版</el-button>
+            </el-empty>
+          </div>
+        </div>
+
+        <!-- 系统设置 -->
+        <div v-if="activeMenu === 'settings'">
+          <div class="page-header">
+            <div>
+              <div class="page-title">系统设置</div>
+              <div class="page-subtitle">企业信息、科目映射、用户权限等</div>
+            </div>
+          </div>
+          <div class="table-card" style="text-align: center; padding: 60px 20px;">
+            <el-empty description="演示版不支持系统设置">
+              <p style="color: #909399; margin-bottom: 20px;">正式版支持：企业信息配置、49个建筑行业标准科目映射、多用户权限管理</p>
+              <el-button type="primary">了解正式版</el-button>
+            </el-empty>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+const { createApp, ref, onMounted, nextTick, watch } = Vue;
+
+const app = createApp({
+  setup() {
+    const isLoggedIn = ref(false);
+    const currentUser = ref('');
+    const activeMenu = ref('dashboard');
+    const loginForm = ref({ username: 'boss', password: '123456' });
+    const dashboardMonth = ref('2026-06');
+    const profitPeriod = ref('year');
+    const fundDate = ref('2026-07-11');
+    const agingSearch = ref('');
+
+    // 图表引用
+    const revenueChart = ref(null);
+    const projectPieChart = ref(null);
+    const costChart = ref(null);
+    const profitChart = ref(null);
+    const fundTrendChart = ref(null);
+    const fundInChart = ref(null);
+    const fundOutChart = ref(null);
+    const agingChart = ref(null);
+
+    // Mock数据
+    const projectOverview = ref([
+      { name: '苏州工业园区科创中心幕墙工程', manager: '李建国', contractAmount: 3800, incomeAmount: 2650, costAmount: 2310, profit: 340, profitRate: 12.8, progress: 70 },
+      { name: '昆山花桥住宅楼土建工程', manager: '王士杰', contractAmount: 5200, incomeAmount: 3120, costAmount: 2890, profit: 230, profitRate: 7.4, progress: 60 },
+      { name: '吴江太湖新城市政道路', manager: '张明辉', contractAmount: 2100, incomeAmount: 1890, costAmount: 1650, profit: 240, profitRate: 12.7, progress: 90 },
+      { name: '张家港保税区厂房钢结构', manager: '陈志强', contractAmount: 1680, incomeAmount: 1344, costAmount: 1230, profit: 114, profitRate: 8.5, progress: 80 },
+      { name: '太仓港仓储基地土建工程', manager: '刘向东', contractAmount: 2850, incomeAmount: 855, costAmount: 790, profit: 65, profitRate: 7.6, progress: 30 },
+      { name: '常熟高新区办公楼装修', manager: '赵晓峰', contractAmount: 980, incomeAmount: 784, costAmount: 680, profit: 104, profitRate: 13.3, progress: 80 },
+    ]);
+
+    const profitTable = ref([
+      { name: '科创中心幕墙工程', income: 2650.00, cost: 2310.00, grossProfit: 340.00, grossRate: 12.8, tax: 79.50, expense: 52.30, netProfit: 208.20, netRate: 7.9 },
+      { name: '花桥住宅楼工程', income: 3120.00, cost: 2890.00, grossProfit: 230.00, grossRate: 7.4, tax: 93.60, expense: 61.50, netProfit: 74.90, netRate: 2.4 },
+      { name: '太湖新城市政道路', income: 1890.00, cost: 1650.00, grossProfit: 240.00, grossRate: 12.7, tax: 56.70, expense: 37.20, netProfit: 146.10, netRate: 7.7 },
+      { name: '保税区厂房钢结构', income: 1344.00, cost: 1230.00, grossProfit: 114.00, grossRate: 8.5, tax: 40.32, expense: 26.50, netProfit: 47.18, netRate: 3.5 },
+      { name: '太仓港仓储基地', income: 855.00, cost: 790.00, grossProfit: 65.00, grossRate: 7.6, tax: 25.65, expense: 16.80, netProfit: 22.55, netRate: 2.6 },
+      { name: '高新区办公楼装修', income: 784.00, cost: 680.00, grossProfit: 104.00, grossRate: 13.3, tax: 23.52, expense: 15.40, netProfit: 65.08, netRate: 8.3 },
+    ]);
+
+    const fundDetails = ref([
+      { time: '09:15', type: '工程款收入', direction: 'in', project: '科创中心幕墙工程', summary: '收甲方进度款第5期', amount: '285,000.00', account: '工行基本户' },
+      { time: '10:32', type: '材料款支付', direction: 'out', project: '花桥住宅楼工程', summary: '付XX建材公司钢筋款', amount: '156,000.00', account: '工行基本户' },
+      { time: '11:08', type: '劳务款支付', direction: 'out', project: '保税区厂房钢结构', summary: '付XX劳务公司6月人工费', amount: '89,000.00', account: '建行专户' },
+      { time: '14:20', type: '保证金退回', direction: 'in', project: '太湖新城市政道路', summary: '收质监站安全文明保证金退回', amount: '50,000.00', account: '工行基本户' },
+      { time: '15:45', type: '税金缴纳', direction: 'out', project: '公司本部', summary: '缴纳5月增值税及附加', amount: '68,000.00', account: '工行基本户' },
+      { time: '16:30', type: '设计费收入', direction: 'in', project: '高新区办公楼装修', summary: '收甲方设计配合费', amount: '123,000.00', account: '招行一般户' },
+      { time: '17:00', type: '工资发放', direction: 'out', project: '公司本部', summary: '发放5月管理人员工资', amount: '20,000.00', account: '工行基本户' },
+    ]);
+
+    const agingList = ref([
+      { customer: '昆山市XX置业有限公司', project: '花桥住宅楼工程', amount: 320.50, ageDays: 1280, level: '3-5年', levelType: 'danger', risk: '高危', riskType: 'danger', collector: '王士杰' },
+      { customer: '苏州XX科技发展有限公司', project: '科创中心幕墙工程', amount: 285.00, ageDays: 980, level: '2-3年', levelType: 'warning', risk: '中高', riskType: 'warning', collector: '李建国' },
+      { customer: '太仓XX物流集团', project: '太仓港仓储基地', amount: 156.80, ageDays: 720, level: '2年', levelType: 'warning', risk: '中等', riskType: 'warning', collector: '刘向东' },
+      { customer: '张家港XX制造有限公司', project: '保税区厂房钢结构', amount: 185.60, ageDays: 450, level: '1-2年', levelType: 'warning', risk: '关注', riskType: 'warning', collector: '陈志强' },
+      { customer: '吴江XX建设投资集团', project: '太湖新城市政道路', amount: 210.00, ageDays: 280, level: '1年内', levelType: 'success', risk: '正常', riskType: 'success', collector: '张明辉' },
+      { customer: '常熟XX地产开发有限公司', project: '高新区办公楼装修', amount: 98.50, ageDays: 180, level: '1年内', levelType: 'success', risk: '正常', riskType: 'success', collector: '赵晓峰' },
+      { customer: '苏州XX商业管理公司', project: '科创中心幕墙工程', amount: 125.00, ageDays: 90, level: '1年内', levelType: 'success', risk: '正常', riskType: 'success', collector: '李建国' },
+    ]);
+
+    const allProjects = ref([
+      { code: 'JSD-2024-001', name: '苏州工业园区科创中心幕墙工程', customer: '苏州XX科技发展有限公司', manager: '李建国', contractAmount: 3800, startDate: '2024-03-15', endDate: '2026-09-30', status: '在建' },
+      { code: 'JSD-2024-002', name: '昆山花桥住宅楼土建工程', customer: '昆山市XX置业有限公司', manager: '王士杰', contractAmount: 5200, startDate: '2024-06-01', endDate: '2026-12-31', status: '在建' },
+      { code: 'JSD-2023-008', name: '吴江太湖新城市政道路', customer: '吴江XX建设投资集团', manager: '张明辉', contractAmount: 2100, startDate: '2023-09-10', endDate: '2026-08-15', status: '在建' },
+      { code: 'JSD-2025-003', name: '张家港保税区厂房钢结构', customer: '张家港XX制造有限公司', manager: '陈志强', contractAmount: 1680, startDate: '2025-02-20', endDate: '2026-10-30', status: '在建' },
+      { code: 'JSD-2026-001', name: '太仓港仓储基地土建工程', customer: '太仓XX物流集团', manager: '刘向东', contractAmount: 2850, startDate: '2026-03-01', endDate: '2027-06-30', status: '在建' },
+      { code: 'JSD-2025-006', name: '常熟高新区办公楼装修', customer: '常熟XX地产开发有限公司', manager: '赵晓峰', contractAmount: 980, startDate: '2025-08-15', endDate: '2026-09-15', status: '在建' },
+      { code: 'JSD-2023-003', name: '苏州XX产业园标准厂房', customer: '苏州XX产业发展公司', manager: '李建国', contractAmount: 2500, startDate: '2023-01-10', endDate: '2025-06-30', status: '已完工' },
+    ]);
+
+    const doLogin = () => {
+      currentUser.value = loginForm.value.username === 'boss' ? '张总（老板视角）' : '李会计（财务视角）';
+      isLoggedIn.value = true;
+      nextTick(() => {
+        initCharts();
+      });
+    };
+
+    const logout = () => {
+      isLoggedIn.value = false;
+    };
+
+    const handleMenuSelect = (index) => {
+      activeMenu.value = index;
+      nextTick(() => {
+        initCharts();
+      });
+    };
+
+    const initCharts = () => {
+      // 收入趋势图
+      if (revenueChart.value && activeMenu.value === 'dashboard') {
+        const chart = echarts.init(revenueChart.value);
+        chart.setOption({
+          tooltip: { trigger: 'axis' },
+          legend: { data: ['营业收入', '营业成本'], bottom: 0 },
+          grid: { left: '3%', right: '4%', bottom: '15%', containLabel: true },
+          xAxis: {
+            type: 'category',
+            data: ['7月','8月','9月','10月','11月','12月','1月','2月','3月','4月','5月','6月']
+          },
+          yAxis: { type: 'value', name: '万元' },
+          series: [
+            { name: '营业收入', type: 'line', smooth: true, data: [890, 920, 1050, 1120, 1080, 1250, 980, 860, 1020, 1150, 1145, 1286],
+              itemStyle: { color: '#409eff' }, areaStyle: { color: new echarts.graphic.LinearGradient(0,0,0,1,[{offset:0,color:'rgba(64,158,255,0.3)'},{offset:1,color:'rgba(64,158,255,0.05)'}]) }
+            },
+            { name: '营业成本', type: 'line', smooth: true, data: [760, 790, 900, 960, 930, 1080, 840, 740, 870, 980, 978, 1098],
+              itemStyle: { color: '#f56c6c' }, areaStyle: { color: new echarts.graphic.LinearGradient(0,0,0,1,[{offset:0,color:'rgba(245,108,108,0.25)'},{offset:1,color:'rgba(245,108,108,0.05)'}]) }
+            }
+          ]
+        });
+      }
+
+      // 项目收入占比
+      if (projectPieChart.value && activeMenu.value === 'dashboard') {
+        const chart = echarts.init(projectPieChart.value);
+        chart.setOption({
+          tooltip: { trigger: 'item', formatter: '{b}: {c}万 ({d}%)' },
+          legend: { bottom: 0, left: 'center' },
+          series: [{
+            type: 'pie',
+            radius: ['40%', '65%'],
+            avoidLabelOverlap: true,
+            label: { show: false },
+            data: [
+              { value: 2650, name: '科创中心幕墙' },
+              { value: 3120, name: '花桥住宅楼' },
+              { value: 1890, name: '太湖新城道路' },
+              { value: 1344, name: '保税区厂房' },
+              { value: 855, name: '太仓港仓储' },
+              { value: 784, name: '高新区办公楼' },
+            ]
+          }]
+        });
+      }
+
+      // 成本费用构成
+      if (costChart.value && activeMenu.value === 'dashboard') {
+        const chart = echarts.init(costChart.value);
+        chart.setOption({
+          tooltip: { trigger: 'axis', axisPointer: { type: 'shadow' } },
+          legend: { bottom: 0 },
+          grid: { left: '3%', right: '4%', bottom: '15%', containLabel: true },
+          xAxis: { type: 'category', data: ['7月','8月','9月','10月','11月','12月','1月','2月','3月','4月','5月','6月'] },
+          yAxis: { type: 'value', name: '万元' },
+          series: [
+            { name: '材料费', type: 'bar', stack: 'cost', data: [410, 425, 485, 515, 500, 580, 450, 395, 465, 525, 520, 585], itemStyle: { color: '#409eff' } },
+            { name: '人工费', type: 'bar', stack: 'cost', data: [210, 220, 250, 265, 260, 300, 235, 205, 240, 270, 272, 305], itemStyle: { color: '#67c23a' } },
+            { name: '机械费', type: 'bar', stack: 'cost', data: [70, 72, 82, 88, 85, 98, 78, 68, 80, 90, 92, 105], itemStyle: { color: '#e6a23c' } },
+            { name: '其他直接费', type: 'bar', stack: 'cost', data: [70, 73, 83, 92, 85, 102, 77, 72, 85, 95, 94, 103], itemStyle: { color: '#909399' } },
+          ]
+        });
+      }
+
+      // 利润率走势
+      if (profitChart.value && activeMenu.value === 'dashboard') {
+        const chart = echarts.init(profitChart.value);
+        chart.setOption({
+          tooltip: { trigger: 'axis', formatter: '{b}<br/>毛利率: {c}%' },
+          grid: { left: '3%', right: '4%', bottom: '10%', containLabel: true },
+          xAxis: { type: 'category', data: ['7月','8月','9月','10月','11月','12月','1月','2月','3月','4月','5月','6月'] },
+          yAxis: { type: 'value', name: '%', max: 20 },
+          series: [{
+            type: 'line',
+            smooth: true,
+            data: [14.6, 14.1, 14.3, 14.3, 13.9, 13.6, 14.3, 14.0, 14.7, 14.8, 14.6, 14.6],
+            itemStyle: { color: '#67c23a' },
+            areaStyle: { color: new echarts.graphic.LinearGradient(0,0,0,1,[{offset:0,color:'rgba(103,194,58,0.3)'},{offset:1,color:'rgba(103,194,58,0.05)'}]) },
+            markLine: {
+              data: [{ type: 'average', name: '平均' }],
+              lineStyle: { color: '#f56c6c' }
+            }
+          }]
+        });
+      }
+
+      // 资金余额走势
+      if (fundTrendChart.value && activeMenu.value === 'fund') {
+        const chart = echarts.init(fundTrendChart.value);
+        const dates = [];
+        const balances = [];
+        for (let i = 29; i >= 0; i--) {
+          const d = new Date(2026, 5, 12 + (29 - i) - 29);
+          dates.push(`${d.getMonth()+1}/${d.getDate()}`);
+          const base = 600 + Math.sin(i * 0.3) * 40 + (29 - i) * 2.5;
+          balances.push(base.toFixed(2));
+        }
+        chart.setOption({
+          tooltip: { trigger: 'axis', formatter: '{b}<br/>资金余额: {c}万' },
+          grid: { left: '3%', right: '4%', bottom: '3%', containLabel: true },
+          xAxis: { type: 'category', data: dates },
+          yAxis: { type: 'value', name: '万元' },
+          series: [{
+            type: 'line',
+            smooth: true,
+            data: balances,
+            itemStyle: { color: '#67c23a' },
+            areaStyle: { color: new echarts.graphic.LinearGradient(0,0,0,1,[{offset:0,color:'rgba(103,194,58,0.4)'},{offset:1,color:'rgba(103,194,58,0.05)'}]) }
+          }]
+        });
+      }
+
+      // 资金流入构成
+      if (fundInChart.value && activeMenu.value === 'fund') {
+        const chart = echarts.init(fundInChart.value);
+        chart.setOption({
+          tooltip: { trigger: 'item', formatter: '{b}: {c}万 ({d}%)' },
+          legend: { bottom: 0 },
+          series: [{
+            type: 'pie',
+            radius: ['35%', '60%'],
+            label: { show: false },
+            data: [
+              { value: 28.5, name: '工程进度款' },
+              { value: 12.3, name: '设计配合费' },
+              { value: 5.0, name: '保证金退回' },
+            ]
+          }]
+        });
+      }
+
+      // 资金流出构成
+      if (fundOutChart.value && activeMenu.value === 'fund') {
+        const chart = echarts.init(fundOutChart.value);
+        chart.setOption({
+          tooltip: { trigger: 'item', formatter: '{b}: {c}万 ({d}%)' },
+          legend: { bottom: 0 },
+          series: [{
+            type: 'pie',
+            radius: ['35%', '60%'],
+            label: { show: false },
+            data: [
+              { value: 15.6, name: '材料款' },
+              { value: 8.9, name: '劳务款' },
+              { value: 6.8, name: '税费' },
+              { value: 2.0, name: '人员工资' },
+            ]
+          }]
+        });
+      }
+
+      // 账龄分布
+      if (agingChart.value && activeMenu.value === 'aging') {
+        const chart = echarts.init(agingChart.value);
+        chart.setOption({
+          tooltip: { trigger: 'axis', axisPointer: { type: 'shadow' } },
+          legend: { bottom: 0 },
+          grid: { left: '3%', right: '4%', bottom: '12%', containLabel: true },
+          xAxis: { type: 'category', data: ['1年以内', '1-2年', '2-3年', '3-5年', '5年以上'] },
+          yAxis: { type: 'value', name: '万元' },
+          series: [{
+            type: 'bar',
+            data: [
+              { value: 1856.40, itemStyle: { color: '#67c23a' } },
+              { value: 782.50, itemStyle: { color: '#e6a23c' } },
+              { value: 456.80, itemStyle: { color: '#f56c6c' } },
+              { value: 268.30, itemStyle: { color: '#c0392b' } },
+              { value: 88.18, itemStyle: { color: '#8e44ad' } },
+            ],
+            barWidth: '50%',
+            label: { show: true, position: 'top', formatter: '{c}万' }
+          }]
+        });
+      }
+    };
+
+    // 窗口大小变化时重绘图表
+    window.addEventListener('resize', () => {
+      const charts = [revenueChart, projectPieChart, costChart, profitChart, fundTrendChart, fundInChart, fundOutChart, agingChart];
+      charts.forEach(c => {
+        if (c.value) {
+          const inst = echarts.getInstanceByDom(c.value);
+          if (inst) inst.resize();
+        }
+      });
+    });
+
+    return {
+      isLoggedIn, currentUser, activeMenu, loginForm,
+      dashboardMonth, profitPeriod, fundDate, agingSearch,
+      revenueChart, projectPieChart, costChart, profitChart,
+      fundTrendChart, fundInChart, fundOutChart, agingChart,
+      projectOverview, profitTable, fundDetails, agingList, allProjects,
+      doLogin, logout, handleMenuSelect,
+      Plus: ElementPlusIconsVue.Plus,
+      Download: ElementPlusIconsVue.Download,
+    };
+  }
+});
+
+// 注册图标
+for (const [key, component] of Object.entries(ElementPlusIconsVue)) {
+  app.component(key, component);
+}
+
+app.use(ElementPlus);
+app.mount('#app');
+</script>
+</body>
+</html>

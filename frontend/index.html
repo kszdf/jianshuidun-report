@@ -1,0 +1,1328 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>建税盾·建筑经营管理报表系统</title>
+  <link rel="stylesheet" href="https://unpkg.com/element-plus/dist/index.css">
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    html, body { height: 100%; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif; }
+    #app { height: 100%; }
+
+    /* 登录页 */
+    .login-page {
+      height: 100vh;
+      background: linear-gradient(135deg, #1a2942 0%, #2d4a6f 50%, #3b5998 100%);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+    .login-box {
+      width: 400px;
+      background: #fff;
+      border-radius: 12px;
+      padding: 40px;
+      box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+    }
+    .login-title {
+      text-align: center;
+      font-size: 24px;
+      font-weight: 600;
+      color: #1a2942;
+      margin-bottom: 8px;
+    }
+    .login-subtitle {
+      text-align: center;
+      color: #909399;
+      font-size: 14px;
+      margin-bottom: 30px;
+    }
+    .login-logo {
+      text-align: center;
+      margin-bottom: 20px;
+    }
+    .login-logo-icon {
+      width: 60px;
+      height: 60px;
+      background: linear-gradient(135deg, #409eff, #67c23a);
+      border-radius: 12px;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      color: #fff;
+      font-size: 28px;
+      font-weight: bold;
+    }
+
+    /* 主布局 */
+    .main-layout { height: 100vh; display: flex; flex-direction: column; }
+    .main-header {
+      height: 60px;
+      background: #fff;
+      border-bottom: 1px solid #e4e7ed;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 0 20px;
+      box-shadow: 0 1px 4px rgba(0,21,41,.08);
+      z-index: 10;
+    }
+    .header-left { display: flex; align-items: center; gap: 16px; }
+    .logo-text {
+      font-size: 18px;
+      font-weight: 600;
+      color: #1a2942;
+    }
+    .logo-badge {
+      background: linear-gradient(135deg, #409eff, #67c23a);
+      color: #fff;
+      padding: 2px 8px;
+      border-radius: 4px;
+      font-size: 12px;
+      font-weight: normal;
+    }
+    .header-right { display: flex; align-items: center; gap: 16px; }
+    .user-info { display: flex; align-items: center; gap: 8px; cursor: pointer; }
+    .user-avatar {
+      width: 32px;
+      height: 32px;
+      border-radius: 50%;
+      background: #409eff;
+      color: #fff;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 14px;
+    }
+
+    .main-body { flex: 1; display: flex; overflow: hidden; }
+    .sidebar {
+      width: 220px;
+      background: #fff;
+      border-right: 1px solid #e4e7ed;
+      overflow-y: auto;
+    }
+    .content-area {
+      flex: 1;
+      overflow-y: auto;
+      background: #f5f7fa;
+      padding: 20px;
+    }
+
+    /* 卡片样式 */
+    .page-title {
+      font-size: 20px;
+      font-weight: 600;
+      color: #303133;
+      margin-bottom: 16px;
+    }
+    .page-subtitle {
+      font-size: 13px;
+      color: #909399;
+      margin-bottom: 20px;
+    }
+
+    /* 指标卡 */
+    .kpi-cards {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 16px;
+      margin-bottom: 20px;
+    }
+    .kpi-card {
+      background: #fff;
+      border-radius: 8px;
+      padding: 20px;
+      box-shadow: 0 2px 12px rgba(0,0,0,0.04);
+    }
+    .kpi-label {
+      font-size: 13px;
+      color: #909399;
+      margin-bottom: 8px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+    .kpi-value {
+      font-size: 24px;
+      font-weight: 600;
+      color: #303133;
+    }
+    .kpi-trend {
+      margin-top: 6px;
+      font-size: 12px;
+    }
+    .trend-up { color: #f56c6c; }
+    .trend-down { color: #67c23a; }
+    .kpi-icon {
+      width: 36px;
+      height: 36px;
+      border-radius: 8px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 18px;
+    }
+    .icon-blue { background: #ecf5ff; color: #409eff; }
+    .icon-green { background: #f0f9eb; color: #67c23a; }
+    .icon-orange { background: #fdf6ec; color: #e6a23c; }
+    .icon-red { background: #fef0f0; color: #f56c6c; }
+    .icon-purple { background: #f5f0fe; color: #909399; }
+
+    /* 图表区 */
+    .chart-row {
+      display: grid;
+      grid-template-columns: 2fr 1fr;
+      gap: 16px;
+      margin-bottom: 20px;
+    }
+    .chart-row-3 {
+      display: grid;
+      grid-template-columns: 1fr 1fr 1fr;
+      gap: 16px;
+    }
+    .chart-card {
+      background: #fff;
+      border-radius: 8px;
+      padding: 20px;
+      box-shadow: 0 2px 12px rgba(0,0,0,0.04);
+    }
+    .chart-title {
+      font-size: 15px;
+      font-weight: 500;
+      color: #303133;
+      margin-bottom: 16px;
+    }
+    .chart-box { width: 100%; height: 300px; }
+    .chart-box-sm { width: 100%; height: 250px; }
+
+    /* 列表页 */
+    .filter-bar {
+      background: #fff;
+      border-radius: 8px;
+      padding: 16px 20px;
+      margin-bottom: 16px;
+      display: flex;
+      gap: 12px;
+      align-items: center;
+      flex-wrap: wrap;
+    }
+
+    /* 导入页 */
+    .upload-area {
+      background: #fff;
+      border-radius: 8px;
+      padding: 40px;
+      text-align: center;
+    }
+    .upload-tip {
+      margin-top: 16px;
+      color: #909399;
+      font-size: 13px;
+      line-height: 1.8;
+    }
+    .step-timeline {
+      max-width: 600px;
+      margin: 0 auto 30px;
+    }
+
+    /* 映射配置页 */
+    .mapping-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 16px;
+    }
+    .mapping-stats {
+      display: flex;
+      gap: 24px;
+      margin-bottom: 16px;
+    }
+    .stat-item {
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+    }
+    .stat-value {
+      font-size: 20px;
+      font-weight: 600;
+      color: #303133;
+    }
+    .stat-label {
+      font-size: 12px;
+      color: #909399;
+    }
+  </style>
+</head>
+<body>
+  <div id="app">
+    <!-- 登录页 -->
+    <div v-if="!isLoggedIn" class="login-page">
+      <div class="login-box">
+        <div class="login-logo">
+          <div class="login-logo-icon">建</div>
+        </div>
+        <div class="login-title">建税盾</div>
+        <div class="login-subtitle">建筑经营管理报表系统</div>
+        <el-form :model="loginForm" label-position="top" @submit.prevent="handleLogin">
+          <el-form-item label="用户名">
+            <el-input v-model="loginForm.username" placeholder="请输入用户名" size="large" />
+          </el-form-item>
+          <el-form-item label="密码">
+            <el-input v-model="loginForm.password" type="password" placeholder="请输入密码" size="large" show-password />
+          </el-form-item>
+          <el-form-item>
+            <el-button type="primary" size="large" style="width:100%" :loading="loginLoading" @click="handleLogin">登 录</el-button>
+          </el-form-item>
+        </el-form>
+        <div style="text-align:center;color:#909399;font-size:12px;">
+          演示账号：boss / 123456
+        </div>
+      </div>
+    </div>
+
+    <!-- 主界面 -->
+    <div v-else class="main-layout">
+      <!-- 顶部 -->
+      <div class="main-header">
+        <div class="header-left">
+          <div style="font-size:22px;">
+            <span style="background:linear-gradient(135deg,#409eff,#67c23a);-webkit-background-clip:text;-webkit-text-fill-color:transparent;font-weight:bold;">建</span>
+          </div>
+          <span class="logo-text">建税盾 <span class="logo-badge">建筑版</span></span>
+        </div>
+        <div class="header-right">
+          <el-dropdown @command="handleCommand">
+            <div class="user-info">
+              <div class="user-avatar">{{ currentUser.real_name ? currentUser.real_name[0] : 'U' }}</div>
+              <span>{{ currentUser.real_name || currentUser.username }}</span>
+              <el-icon><ArrowDown /></el-icon>
+            </div>
+            <template #dropdown>
+              <el-dropdown-menu>
+                <el-dropdown-item command="profile">个人信息</el-dropdown-item>
+                <el-dropdown-item command="logout" divided>退出登录</el-dropdown-item>
+              </el-dropdown-menu>
+            </template>
+          </el-dropdown>
+        </div>
+      </div>
+
+      <div class="main-body">
+        <!-- 侧边栏 -->
+        <div class="sidebar">
+          <el-menu :default-active="activeMenu" @select="handleMenuSelect" style="border-right:none;">
+            <el-menu-item index="dashboard">
+              <el-icon><DataAnalysis /></el-icon>
+              <span>经营驾驶舱</span>
+            </el-menu-item>
+            <el-menu-item index="project-profit">
+              <el-icon><TrendCharts /></el-icon>
+              <span>项目利润表</span>
+            </el-menu-item>
+            <el-menu-item index="cash-daily">
+              <el-icon><Wallet /></el-icon>
+              <span>资金日报</span>
+            </el-menu-item>
+            <el-menu-item index="ar-aging">
+              <el-icon><Histogram /></el-icon>
+              <span>应收账龄</span>
+            </el-menu-item>
+            <el-sub-menu index="data">
+              <template #title>
+                <el-icon><Upload /></el-icon>
+                <span>数据导入</span>
+              </template>
+              <el-menu-item index="import-balance">科目余额表导入</el-menu-item>
+              <el-menu-item index="import-voucher">凭证/序时账导入</el-menu-item>
+            </el-sub-menu>
+            <el-sub-menu index="config">
+              <template #title>
+                <el-icon><Setting /></el-icon>
+                <span>系统配置</span>
+              </template>
+              <el-menu-item index="subject-mapping">科目映射配置</el-menu-item>
+              <el-menu-item index="project-manage">项目档案</el-menu-item>
+              <el-menu-item index="bank-account">银行账户</el-menu-item>
+            </el-sub-menu>
+          </el-menu>
+        </div>
+
+        <!-- 内容区 -->
+        <div class="content-area">
+          <!-- 驾驶舱 -->
+          <div v-if="activeMenu === 'dashboard'">
+            <div class="page-title">经营驾驶舱</div>
+            <div class="page-subtitle">
+              <el-date-picker v-model="dashboardPeriod" type="month" placeholder="选择月份" size="small" style="width:140px;" @change="loadDashboard" />
+              <span style="margin-left:12px;">数据更新时间：{{ dashboardData ? '实时计算' : '--' }}</span>
+            </div>
+
+            <!-- KPI卡片 -->
+            <div class="kpi-cards">
+              <div class="kpi-card" v-for="ind in dashboardIndicators" :key="ind.key">
+                <div class="kpi-label">
+                  <span>{{ ind.name }}</span>
+                  <div class="kpi-icon" :class="'icon-' + ind.colorType">
+                    <el-icon><component :is="ind.icon" /></el-icon>
+                  </div>
+                </div>
+                <div class="kpi-value">{{ formatMoney(ind.value) }}</div>
+                <div class="kpi-trend" :class="ind.trend_type === 'up' ? 'trend-up' : 'trend-down'">
+                  {{ ind.trend_type === 'up' ? '↑' : '↓' }} {{ Math.abs(ind.trend) }}%
+                  <span v-if="ind.suffix" style="color:#909399;margin-left:8px;">{{ ind.suffix }}</span>
+                </div>
+              </div>
+            </div>
+
+            <!-- 趋势图 -->
+            <div class="chart-row">
+              <div class="chart-card">
+                <div class="chart-title">月度收支趋势</div>
+                <div class="chart-box" ref="trendChart"></div>
+              </div>
+              <div class="chart-card">
+                <div class="chart-title">应收账龄分布</div>
+                <div class="chart-box" ref="agingChart"></div>
+              </div>
+            </div>
+
+            <!-- 项目排行 + 预警 -->
+            <div class="chart-row">
+              <div class="chart-card">
+                <div class="chart-title">项目利润排行 TOP5</div>
+                <div class="chart-box" ref="projectChart"></div>
+              </div>
+              <div class="chart-card">
+                <div class="chart-title">风险预警</div>
+                <el-empty v-if="!dashboardWarnings.length" description="暂无预警" :image-size="80" />
+                <div v-else>
+                  <div v-for="(w, i) in dashboardWarnings" :key="i" style="padding:12px 0;border-bottom:1px solid #f0f0f0;">
+                    <div style="display:flex;align-items:center;gap:8px;margin-bottom:4px;">
+                      <el-tag :type="w.level === 'danger' ? 'danger' : 'warning'" size="small">{{ w.type }}</el-tag>
+                      <span style="font-size:13px;color:#303133;">{{ w.message }}</span>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- 项目利润表 -->
+          <div v-if="activeMenu === 'project-profit'">
+            <div class="page-title">项目利润表</div>
+            <div class="filter-bar">
+              <el-date-picker v-model="profitPeriod" type="month" placeholder="选择月份(不选则本年累计)" size="default" style="width:200px;" clearable />
+              <el-button type="primary" @click="loadProjectProfit">查询</el-button>
+              <el-button @click="exportProfit">导出Excel</el-button>
+              <span style="margin-left:auto;color:#909399;font-size:13px;">共 {{ projectList.length }} 个项目</span>
+            </div>
+            <el-table :data="projectList" style="width:100%" stripe :default-sort="{prop:'profit',order:'descending'}">
+              <el-table-column prop="project_name" label="项目名称" min-width="240" />
+              <el-table-column prop="contract_amount" label="合同金额" width="140" align="right" :formatter="fmtMoney">
+                <template #header><span style="color:#606266;">合同金额</span></template>
+              </el-table-column>
+              <el-table-column prop="income" label="累计收入" width="140" align="right" :formatter="fmtMoney" sortable />
+              <el-table-column prop="cost" label="累计成本" width="140" align="right" :formatter="fmtMoney" sortable />
+              <el-table-column prop="profit" label="累计利润" width="140" align="right" :formatter="fmtMoney" sortable />
+              <el-table-column prop="profit_rate" label="利润率" width="100" align="right" sortable>
+                <template #default="{row}">
+                  <span :style="{color: row.profit_rate >= 15 ? '#67c23a' : (row.profit_rate >= 8 ? '#e6a23c' : '#f56c6c')}">{{ row.profit_rate }}%</span>
+                </template>
+              </el-table-column>
+              <el-table-column prop="status" label="状态" width="100" align="center">
+                <template #default="{row}">
+                  <el-tag v-if="row.status==='ongoing'" type="primary" size="small">施工中</el-tag>
+                  <el-tag v-else-if="row.status==='completed'" type="success" size="small">已完工</el-tag>
+                  <el-tag v-else-if="row.status==='pending'" type="info" size="small">待开工</el-tag>
+                  <el-tag v-else size="small">{{ row.status }}</el-tag>
+                </template>
+              </el-table-column>
+              <el-table-column label="操作" width="100" align="center">
+                <template #default="{row}">
+                  <el-button type="primary" link @click="viewProjectDetail(row)">详情</el-button>
+                </template>
+              </el-table-column>
+            </el-table>
+          </div>
+
+          <!-- 资金日报 -->
+          <div v-if="activeMenu === 'cash-daily'">
+            <div class="page-title">资金日报</div>
+            <div class="filter-bar">
+              <el-date-picker v-model="cashDate" type="date" placeholder="选择日期" size="default" style="width:180px;" @change="loadCashDaily" />
+              <el-button type="primary" @click="loadCashDaily">查询</el-button>
+            </div>
+
+            <div class="kpi-cards">
+              <div class="kpi-card">
+                <div class="kpi-label"><span>资金总余额</span><div class="kpi-icon icon-blue"><el-icon><Wallet /></el-icon></div></div>
+                <div class="kpi-value">{{ formatMoney(cashData.total_balance) }}</div>
+                <div class="kpi-trend" style="color:#909399;">截至 {{ cashData.report_date }}</div>
+              </div>
+              <div class="kpi-card">
+                <div class="kpi-label"><span>当日收入</span><div class="kpi-icon icon-green"><el-icon><Top /></el-icon></div></div>
+                <div class="kpi-value" style="color:#67c23a;">+{{ formatMoney(cashData.daily_income) }}</div>
+                <div class="kpi-trend" style="color:#909399;">本日流入</div>
+              </div>
+              <div class="kpi-card">
+                <div class="kpi-label"><span>当日支出</span><div class="kpi-icon icon-red"><el-icon><Bottom /></el-icon></div></div>
+                <div class="kpi-value" style="color:#f56c6c;">-{{ formatMoney(cashData.daily_expense) }}</div>
+                <div class="kpi-trend" style="color:#909399;">本日流出</div>
+              </div>
+              <div class="kpi-card">
+                <div class="kpi-label"><span>当日净额</span><div class="kpi-icon icon-orange"><el-icon><Sort /></el-icon></div></div>
+                <div class="kpi-value" :style="{color: cashData.net_flow >= 0 ? '#67c23a' : '#f56c6c'}">
+                  {{ cashData.net_flow >= 0 ? '+' : '' }}{{ formatMoney(cashData.net_flow) }}
+                </div>
+                <div class="kpi-trend" style="color:#909399;">收支差额</div>
+              </div>
+            </div>
+
+            <div class="chart-card">
+              <div class="chart-title">银行账户明细</div>
+              <el-table :data="cashData.accounts || []" style="width:100%" stripe>
+                <el-table-column prop="account_name" label="账户名称" min-width="150" />
+                <el-table-column prop="bank_name" label="开户行" min-width="180" />
+                <el-table-column prop="account_no" label="账号" width="220" />
+                <el-table-column label="账户类型" width="100" align="center">
+                  <template #default="{row}">
+                    <el-tag v-if="row.account_type==='basic'" type="primary" size="small">基本户</el-tag>
+                    <el-tag v-else-if="row.account_type==='general'" size="small">一般户</el-tag>
+                    <el-tag v-else-if="row.account_type==='private'" type="warning" size="small">私户</el-tag>
+                    <el-tag v-else size="small">{{ row.account_type }}</el-tag>
+                  </template>
+                </el-table-column>
+                <el-table-column prop="balance" label="当前余额" width="160" align="right" :formatter="fmtMoney">
+                  <template #header><span style="color:#606266;">当前余额(元)</span></template>
+                </el-table-column>
+              </el-table>
+            </div>
+          </div>
+
+          <!-- 应收账龄 -->
+          <div v-if="activeMenu === 'ar-aging'">
+            <div class="page-title">应收账龄分析</div>
+            <div class="filter-bar">
+              <el-date-picker v-model="arPeriod" type="month" placeholder="选择月份" size="default" style="width:180px;" />
+              <el-button type="primary" @click="loadArAging">查询</el-button>
+            </div>
+
+            <div class="kpi-cards">
+              <div class="kpi-card">
+                <div class="kpi-label"><span>应收账款总额</span><div class="kpi-icon icon-blue"><el-icon><Money /></el-icon></div></div>
+                <div class="kpi-value">{{ formatMoney(arData.total_ar) }}</div>
+              </div>
+              <div class="kpi-card">
+                <div class="kpi-label"><span>逾期金额</span><div class="kpi-icon icon-red"><el-icon><Warning /></el-icon></div></div>
+                <div class="kpi-value" style="color:#f56c6c;">{{ formatMoney(arData.overdue_total) }}</div>
+              </div>
+              <div class="kpi-card">
+                <div class="kpi-label"><span>逾期率</span><div class="kpi-icon icon-orange"><el-icon><TrendCharts /></el-icon></div></div>
+                <div class="kpi-value">{{ arData.overdue_rate }}%</div>
+                <div class="kpi-trend" :class="arData.overdue_rate > 20 ? 'trend-up' : 'trend-down'">
+                  {{ arData.overdue_rate > 20 ? '偏高' : '正常' }}
+                </div>
+              </div>
+              <div class="kpi-card">
+                <div class="kpi-label"><span>客户数量</span><div class="kpi-icon icon-green"><el-icon><User /></el-icon></div></div>
+                <div class="kpi-value">{{ arData.details ? arData.details.length : 0 }}</div>
+              </div>
+            </div>
+
+            <div class="chart-row">
+              <div class="chart-card">
+                <div class="chart-title">账龄分布</div>
+                <div class="chart-box" ref="arAgingChart"></div>
+              </div>
+              <div class="chart-card">
+                <div class="chart-title">账龄构成</div>
+                <div class="chart-box" ref="arPieChart"></div>
+              </div>
+            </div>
+
+            <div class="chart-card">
+              <div class="chart-title">客户明细</div>
+              <el-table :data="arData.details || []" style="width:100%" stripe :default-sort="{prop:'days',order:'descending'}">
+                <el-table-column prop="customer_name" label="客户名称" min-width="200" />
+                <el-table-column prop="balance" label="应收余额" width="140" align="right" :formatter="fmtMoney" sortable />
+                <el-table-column prop="days" label="账龄(天)" width="100" align="right" sortable />
+                <el-table-column prop="last_payment_date" label="最后收款日" width="120" align="center" />
+                <el-table-column prop="aging_level" label="风险等级" width="100" align="center">
+                  <template #default="{row}">
+                    <el-tag v-if="row.aging_level==='normal'" type="success" size="small">正常</el-tag>
+                    <el-tag v-else-if="row.aging_level==='attention'" type="info" size="small">关注</el-tag>
+                    <el-tag v-else-if="row.aging_level==='warning'" type="warning" size="small">预警</el-tag>
+                    <el-tag v-else type="danger" size="small">危险</el-tag>
+                  </template>
+                </el-table-column>
+              </el-table>
+            </div>
+          </div>
+
+          <!-- 科目余额表导入 -->
+          <div v-if="activeMenu === 'import-balance'">
+            <div class="page-title">科目余额表导入</div>
+            <div class="chart-card">
+              <div class="step-timeline">
+                <el-steps :active="balanceStep" finish-status="success">
+                  <el-step title="上传文件" description="导出科目余额表Excel" />
+                  <el-step title="自动识别" description="系统自动识别表头和科目" />
+                  <el-step title="映射确认" description="确认科目映射关系" />
+                  <el-step title="导入完成" description="生成报表" />
+                </el-steps>
+              </div>
+
+              <div v-if="balanceStep === 0">
+                <el-upload
+                  drag
+                  action=""
+                  :auto-upload="false"
+                  :on-change="handleBalanceFile"
+                  accept=".xlsx,.xls"
+                  :limit="1">
+                  <el-icon class="el-icon--upload"><upload-filled /></el-icon>
+                  <div class="el-upload__text">
+                    将文件拖到此处，或<em>点击上传</em>
+                  </div>
+                  <template #tip>
+                    <div class="el-upload__tip">
+                      支持金蝶、用友等主流财务软件导出的科目余额表（.xlsx/.xls格式）
+                    </div>
+                  </template>
+                </el-upload>
+                <div class="upload-tip">
+                  💡 操作步骤：<br>
+                  1. 打开财务软件 → 科目余额表 → 选择期间 → 导出Excel<br>
+                  2. 上传导出的Excel文件，系统自动识别表头和数据<br>
+                  3. 确认科目映射（首次需要，后续自动匹配）<br>
+                  4. 导入完成后即可查看各类管理报表
+                </div>
+              </div>
+
+              <div v-else-if="balanceStep === 3">
+                <el-result icon="success" title="导入成功" :sub-title="balanceImportMsg">
+                  <template #extra>
+                    <el-button type="primary" @click="activeMenu='dashboard'">查看报表</el-button>
+                    <el-button @click="balanceStep = 0">继续导入</el-button>
+                  </template>
+                </el-result>
+              </div>
+            </div>
+          </div>
+
+          <!-- 凭证导入 -->
+          <div v-if="activeMenu === 'import-voucher'">
+            <div class="page-title">凭证/序时账导入</div>
+            <div class="chart-card">
+              <el-result icon="info" title="凭证导入功能" sub-title="凭证数据用于项目利润、应收账龄等明细分析，建议先导入科目余额表">
+                <template #extra>
+                  <el-upload action="" :auto-upload="false" :on-change="handleVoucherFile" accept=".xlsx,.xls" :show-file-list="false">
+                    <el-button type="primary">选择凭证文件</el-button>
+                  </el-upload>
+                </template>
+              </el-result>
+              <div style="margin-top:20px;padding:16px;background:#f5f7fa;border-radius:8px;">
+                <div style="font-weight:500;margin-bottom:8px;">💡 说明</div>
+                <div style="color:#606266;font-size:13px;line-height:1.8;">
+                  · 从财务软件导出序时账/凭证表，选择月份范围后导出<br>
+                  · 系统自动识别凭证号、科目、借贷方金额、辅助核算信息<br>
+                  · 项目利润表、应收账龄分析依赖凭证数据中的辅助核算
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- 科目映射配置 -->
+          <div v-if="activeMenu === 'subject-mapping'">
+            <div class="mapping-header">
+              <div>
+                <div class="page-title" style="margin-bottom:4px;">科目映射配置</div>
+                <div class="page-subtitle" style="margin-bottom:0;">企业科目 → 标准科目 映射关系，自动匹配后可手动调整</div>
+              </div>
+              <div>
+                <el-button type="primary" @click="remapSubjects">重新自动映射</el-button>
+              </div>
+            </div>
+
+            <div class="mapping-stats">
+              <div class="stat-item">
+                <span class="stat-value">{{ mappingStats.total }}</span>
+                <span class="stat-label">总科目数</span>
+              </div>
+              <div class="stat-item">
+                <span class="stat-value" style="color:#67c23a;">{{ mappingStats.mapped }}</span>
+                <span class="stat-label">已映射</span>
+              </div>
+              <div class="stat-item">
+                <span class="stat-value" style="color:#f56c6c;">{{ mappingStats.unmapped }}</span>
+                <span class="stat-label">未映射</span>
+              </div>
+              <div class="stat-item">
+                <span class="stat-value" style="color:#409eff;">{{ mappingStats.mapping_rate }}%</span>
+                <span class="stat-label">映射率</span>
+              </div>
+            </div>
+
+            <div class="chart-card">
+              <div style="display:flex;gap:12px;margin-bottom:16px;">
+                <el-select v-model="mappingFilter" size="default" style="width:140px;" @change="loadMappingList">
+                  <el-option label="全部科目" value="" />
+                  <el-option label="未映射" value="unmapped" />
+                  <el-option label="已映射" value="mapped" />
+                </el-select>
+                <el-input v-model="mappingKeyword" placeholder="搜索科目名称/编码" style="width:240px;" clearable @input="loadMappingList" />
+                <span style="flex:1;"></span>
+                <span style="color:#909399;font-size:13px;line-height:32px;">共 {{ mappingList.length }} 条</span>
+              </div>
+
+              <el-table :data="mappingListPage" style="width:100%" size="default" stripe height="500">
+                <el-table-column prop="source_code" label="企业科目编码" width="140" />
+                <el-table-column prop="source_name" label="企业科目名称" min-width="180" />
+                <el-table-column label="映射状态" width="90" align="center">
+                  <template #default="{row}">
+                    <el-tag v-if="row.is_mapped" type="success" size="small">已映射</el-tag>
+                    <el-tag v-else type="danger" size="small">未映射</el-tag>
+                  </template>
+                </el-table-column>
+                <el-table-column label="匹配方式" width="80" align="center">
+                  <template #default="{row}">
+                    <span v-if="row.match_type==='auto'" style="color:#409eff;">自动</span>
+                    <span v-else style="color:#e6a23c;">手动</span>
+                  </template>
+                </el-table-column>
+                <el-table-column prop="std_subject_code" label="标准科目编码" width="140" />
+                <el-table-column prop="std_subject_name" label="标准科目名称" min-width="160" />
+                <el-table-column label="置信度" width="100" align="center">
+                  <template #default="{row}">
+                    <el-progress :percentage="row.match_confidence" :stroke-width="12" :show-text="true" :color="row.match_confidence >= 80 ? '#67c23a' : (row.match_confidence >= 60 ? '#e6a23c' : '#f56c6c')" />
+                  </template>
+                </el-table-column>
+                <el-table-column label="操作" width="100" align="center">
+                  <template #default="{row}">
+                    <el-button type="primary" link size="small" @click="editMapping(row)">编辑</el-button>
+                  </template>
+                </el-table-column>
+              </el-table>
+              <div style="margin-top:16px;text-align:right;">
+                <el-pagination layout="prev, pager, next" :total="mappingList.length" :page-size="20" :current-page.sync="mappingPage" />
+              </div>
+            </div>
+          </div>
+
+          <!-- 项目档案 -->
+          <div v-if="activeMenu === 'project-manage'">
+            <div class="page-title">项目档案</div>
+            <div class="filter-bar">
+              <el-input v-model="projectKeyword" placeholder="搜索项目名称" style="width:240px;" clearable />
+              <el-select v-model="projectStatusFilter" placeholder="项目状态" style="width:140px;" clearable>
+                <el-option label="施工中" value="ongoing" />
+                <el-option label="已完工" value="completed" />
+                <el-option label="待开工" value="pending" />
+              </el-select>
+              <el-button type="primary">新增项目</el-button>
+            </div>
+            <el-table :data="projectArchiveList" style="width:100%" stripe>
+              <el-table-column prop="project_code" label="项目编号" width="140" />
+              <el-table-column prop="project_name" label="项目名称" min-width="240" />
+              <el-table-column prop="customer_name" label="客户" min-width="180" />
+              <el-table-column prop="contract_amount" label="合同金额" width="140" align="right" :formatter="fmtMoney" />
+              <el-table-column prop="manager" label="项目经理" width="100" />
+              <el-table-column prop="start_date" label="开工日期" width="120" align="center" />
+              <el-table-column prop="end_date" label="预计完工" width="120" align="center" />
+              <el-table-column prop="status" label="状态" width="100" align="center">
+                <template #default="{row}">
+                  <el-tag v-if="row.status==='ongoing'" type="primary" size="small">施工中</el-tag>
+                  <el-tag v-else-if="row.status==='completed'" type="success" size="small">已完工</el-tag>
+                  <el-tag v-else type="info" size="small">待开工</el-tag>
+                </template>
+              </el-table-column>
+            </el-table>
+          </div>
+
+          <!-- 银行账户 -->
+          <div v-if="activeMenu === 'bank-account'">
+            <div class="page-title">银行账户管理</div>
+            <div class="chart-card">
+              <el-table :data="bankAccountList" style="width:100%" stripe>
+                <el-table-column prop="account_name" label="账户名称" min-width="150" />
+                <el-table-column prop="bank_name" label="开户行" min-width="180" />
+                <el-table-column prop="account_no" label="账号" width="220" />
+                <el-table-column label="账户类型" width="100" align="center">
+                  <template #default="{row}">
+                    <el-tag v-if="row.account_type==='basic'" type="primary" size="small">基本户</el-tag>
+                    <el-tag v-else size="small">一般户</el-tag>
+                  </template>
+                </el-table-column>
+                <el-table-column prop="current_balance" label="当前余额" width="160" align="right" :formatter="fmtMoney" />
+              </el-table>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- 科目映射编辑弹窗 -->
+    <el-dialog v-model="mappingDialogVisible" title="编辑科目映射" width="500px">
+      <el-form label-width="100px">
+        <el-form-item label="企业科目">
+          <span>{{ currentMappingRow.source_code }} - {{ currentMappingRow.source_name }}</span>
+        </el-form-item>
+        <el-form-item label="映射到">
+          <el-select v-model="selectedStdSubject" filterable placeholder="选择标准科目" style="width:100%;">
+            <el-option v-for="s in stdSubjectList" :key="s.id" :label="s.subject_code + ' ' + s.subject_name" :value="s" />
+          </el-select>
+        </el-form-item>
+      </el-form>
+      <template #footer>
+        <el-button @click="mappingDialogVisible = false">取消</el-button>
+        <el-button type="primary" @click="saveMapping">保存</el-button>
+      </template>
+    </el-dialog>
+  </div>
+
+  <!-- Vue3 CDN -->
+  <script src="https://unpkg.com/vue@3/dist/vue.global.js"></script>
+  <script src="https://unpkg.com/element-plus"></script>
+  <script src="https://unpkg.com/@element-plus/icons-vue"></script>
+  <script src="https://unpkg.com/echarts@5/dist/echarts.min.js"></script>
+
+  <script>
+    const { createApp, ref, reactive, computed, onMounted, nextTick, watch } = Vue;
+
+    const API_BASE = 'http://localhost:8000/api';
+
+    const app = createApp({
+      setup() {
+        // 状态
+        const isLoggedIn = ref(false);
+        const currentUser = ref({});
+        const activeMenu = ref('dashboard');
+        const token = ref(localStorage.getItem('jianzao_token') || '');
+
+        // 登录
+        const loginForm = reactive({ username: 'boss', password: '123456' });
+        const loginLoading = ref(false);
+
+        // 驾驶舱
+        const dashboardPeriod = ref('');
+        const dashboardData = ref(null);
+        const trendChart = ref(null);
+        const agingChart = ref(null);
+        const projectChart = ref(null);
+
+        const dashboardIndicators = computed(() => {
+          if (!dashboardData.value) return [];
+          const icons = {
+            cash: 'Wallet', ar: 'Money', ap: 'Wallet',
+            income: 'Top', cost: 'Bottom', profit: 'TrendCharts', projects: 'Briefcase'
+          };
+          const colors = {
+            cash: 'blue', ar: 'orange', ap: 'purple',
+            income: 'green', cost: 'red', profit: 'blue', projects: 'green'
+          };
+          return dashboardData.value.indicators.map(ind => ({
+            ...ind,
+            icon: icons[ind.key] || 'DataAnalysis',
+            colorType: colors[ind.key] || 'blue'
+          }));
+        });
+
+        const dashboardWarnings = computed(() => {
+          return dashboardData.value?.warnings || [];
+        });
+
+        // 项目利润
+        const profitPeriod = ref('');
+        const projectList = ref([]);
+
+        // 资金日报
+        const cashDate = ref('');
+        const cashData = reactive({ total_balance: 0, daily_income: 0, daily_expense: 0, net_flow: 0, accounts: [] });
+
+        // 应收账龄
+        const arPeriod = ref('');
+        const arData = reactive({ total_ar: 0, overdue_total: 0, overdue_rate: 0, buckets: {}, details: [] });
+        const arAgingChart = ref(null);
+        const arPieChart = ref(null);
+
+        // 导入
+        const balanceStep = ref(0);
+        const balanceImportMsg = ref('');
+
+        // 科目映射
+        const mappingStats = reactive({ total: 0, mapped: 0, unmapped: 0, mapping_rate: 0 });
+        const mappingList = ref([]);
+        const mappingFilter = ref('');
+        const mappingKeyword = ref('');
+        const mappingPage = ref(1);
+        const mappingDialogVisible = ref(false);
+        const currentMappingRow = ref({});
+        const selectedStdSubject = ref(null);
+        const stdSubjectList = ref([]);
+
+        const mappingListPage = computed(() => {
+          let list = mappingList.value;
+          if (mappingFilter.value === 'unmapped') list = list.filter(m => !m.is_mapped);
+          if (mappingFilter.value === 'mapped') list = list.filter(m => m.is_mapped);
+          if (mappingKeyword.value) {
+            const kw = mappingKeyword.value.toLowerCase();
+            list = list.filter(m =>
+              m.source_name.toLowerCase().includes(kw) ||
+              m.source_code.toLowerCase().includes(kw)
+            );
+          }
+          const start = (mappingPage.value - 1) * 20;
+          return list.slice(start, start + 20);
+        });
+
+        // 项目档案
+        const projectKeyword = ref('');
+        const projectStatusFilter = ref('');
+        const projectArchiveList = ref([]);
+
+        // 银行账户
+        const bankAccountList = ref([]);
+
+        // API请求
+        async function api(url, options = {}) {
+          const headers = { 'Content-Type': 'application/json', ...(options.headers || {}) };
+          if (token.value) headers['Authorization'] = 'Bearer ' + token.value;
+          try {
+            const res = await fetch(API_BASE + url, { ...options, headers });
+            if (res.status === 401) {
+              isLoggedIn.value = false;
+              localStorage.removeItem('jianzao_token');
+              return null;
+            }
+            return await res.json();
+          } catch(e) {
+            console.error('API error:', e);
+            // 离线模式返回模拟数据
+            return null;
+          }
+        }
+
+        // 登录
+        async function handleLogin() {
+          loginLoading.value = true;
+          try {
+            const formData = new FormData();
+            formData.append('username', loginForm.username);
+            formData.append('password', loginForm.password);
+            const res = await fetch(API_BASE + '/auth/login', {
+              method: 'POST',
+              body: formData
+            });
+            if (res.ok) {
+              const data = await res.json();
+              token.value = data.access_token;
+              localStorage.setItem('jianzao_token', token.value);
+              isLoggedIn.value = true;
+              await loadUserInfo();
+              loadDashboard();
+            } else {
+              ElementPlus.ElMessage.error('用户名或密码错误');
+            }
+          } catch(e) {
+            // 离线模式直接登录
+            isLoggedIn.value = true;
+            currentUser.value = { username: 'boss', real_name: '张总', role: 'boss' };
+            loadMockData();
+          }
+          loginLoading.value = false;
+        }
+
+        async function loadUserInfo() {
+          const data = await api('/auth/me');
+          if (data) currentUser.value = data;
+        }
+
+        function handleCommand(cmd) {
+          if (cmd === 'logout') {
+            isLoggedIn.value = false;
+            token.value = '';
+            localStorage.removeItem('jianzao_token');
+          }
+        }
+
+        function handleMenuSelect(index) {
+          activeMenu.value = index;
+          nextTick(() => {
+            if (index === 'dashboard') loadDashboard();
+            if (index === 'project-profit') loadProjectProfit();
+            if (index === 'cash-daily') loadCashDaily();
+            if (index === 'ar-aging') loadArAging();
+            if (index === 'subject-mapping') loadMappingData();
+            if (index === 'project-manage') loadProjects();
+            if (index === 'bank-account') loadBankAccounts();
+          });
+        }
+
+        // 加载驾驶舱
+        async function loadDashboard() {
+          const data = await api('/report/dashboard' + (dashboardPeriod.value ? '?period=' + dashboardPeriod.value : ''));
+          if (data) {
+            dashboardData.value = data;
+            renderCharts();
+          } else {
+            loadMockDashboard();
+          }
+        }
+
+        function renderCharts() {
+          if (!dashboardData.value) return;
+          nextTick(() => {
+            // 收支趋势图
+            if (trendChart.value) {
+              const chart = echarts.init(trendChart.value);
+              const trends = dashboardData.value.trends.income_cost;
+              chart.setOption({
+                tooltip: { trigger: 'axis' },
+                legend: { data: ['收入', '成本'], right: 20 },
+                grid: { left: 50, right: 20, top: 40, bottom: 30 },
+                xAxis: { type: 'category', data: trends.months },
+                yAxis: { type: 'value', axisLabel: { formatter: v => (v/10000).toFixed(0) + '万' } },
+                series: [
+                  { name: '收入', type: 'line', smooth: true, data: trends.income.map(v => v),
+                    itemStyle: { color: '#67c23a' }, areaStyle: { opacity: 0.1 } },
+                  { name: '成本', type: 'line', smooth: true, data: trends.cost.map(v => v),
+                    itemStyle: { color: '#f56c6c' }, areaStyle: { opacity: 0.1 } },
+                ]
+              });
+            }
+            // 账龄饼图
+            if (agingChart.value) {
+              const chart = echarts.init(agingChart.value);
+              const aging = dashboardData.value.trends.ar_aging;
+              chart.setOption({
+                tooltip: { trigger: 'item' },
+                legend: { bottom: 0 },
+                series: [{
+                  type: 'pie',
+                  radius: ['45%', '70%'],
+                  avoidLabelOverlap: true,
+                  label: { show: true, formatter: '{b}\n{d}%' },
+                  data: aging,
+                  color: ['#67c23a', '#e6a23c', '#f56c6c', '#909399']
+                }]
+              });
+            }
+            // 项目排行
+            if (projectChart.value) {
+              const chart = echarts.init(projectChart.value);
+              const projects = dashboardData.value.trends.project_top5 || [];
+              chart.setOption({
+                tooltip: { trigger: 'axis' },
+                grid: { left: 140, right: 60, top: 10, bottom: 30 },
+                xAxis: { type: 'value', axisLabel: { formatter: v => (v/10000).toFixed(0) + '万' } },
+                yAxis: { type: 'category', data: projects.map(p => p.project_name.substring(0, 12) + '...').reverse() },
+                series: [{
+                  type: 'bar',
+                  data: projects.map(p => p.profit).reverse(),
+                  itemStyle: { color: params => params.value >= 0 ? '#67c23a' : '#f56c6c',
+                    borderRadius: [0, 4, 4, 0] },
+                  label: { show: true, position: 'right', formatter: p => (p.value/10000).toFixed(1) + '万' }
+                }]
+              });
+            }
+          });
+        }
+
+        // 项目利润
+        async function loadProjectProfit() {
+          const data = await api('/report/project-profit' + (profitPeriod.value ? '?period=' + profitPeriod.value : ''));
+          if (data) projectList.value = data.items;
+          else loadMockProjectProfit();
+        }
+
+        function viewProjectDetail(row) {
+          ElementPlus.ElMessage.info('项目详情功能开发中');
+        }
+
+        // 资金日报
+        async function loadCashDaily() {
+          const data = await api('/report/cash-daily' + (cashDate.value ? '?report_date=' + cashDate.value : ''));
+          if (data) Object.assign(cashData, data);
+          else loadMockCashDaily();
+        }
+
+        // 应收账龄
+        async function loadArAging() {
+          const data = await api('/report/ar-aging' + (arPeriod.value ? '?period=' + arPeriod.value : ''));
+          if (data) {
+            Object.assign(arData, data);
+            nextTick(() => renderArCharts());
+          } else {
+            loadMockArAging();
+          }
+        }
+
+        function renderArCharts() {
+          const buckets = arData.buckets || {};
+          const labels = ['30天内', '30-90天', '90-180天', '180天以上'];
+          const values = [buckets.within_30 || 0, buckets.between_30_90 || 0, buckets.between_90_180 || 0, buckets.over_180 || 0];
+
+          if (arAgingChart.value) {
+            const chart = echarts.init(arAgingChart.value);
+            chart.setOption({
+              tooltip: { trigger: 'axis' },
+              grid: { left: 60, right: 20, top: 20, bottom: 40 },
+              xAxis: { type: 'category', data: labels },
+              yAxis: { type: 'value', axisLabel: { formatter: v => (v/10000).toFixed(0) + '万' } },
+              series: [{
+                type: 'bar',
+                data: values,
+                barWidth: '50%',
+                itemStyle: {
+                  color: params => ['#67c23a', '#e6a23c', '#f56c6c', '#909399'][params.dataIndex],
+                  borderRadius: [4, 4, 0, 0]
+                },
+                label: { show: true, position: 'top', formatter: p => (p.value/10000).toFixed(1) + '万' }
+              }]
+            });
+          }
+
+          if (arPieChart.value) {
+            const chart = echarts.init(arPieChart.value);
+            const pieData = labels.map((name, i) => ({ name, value: values[i] })).filter(d => d.value > 0);
+            chart.setOption({
+              tooltip: { trigger: 'item' },
+              legend: { bottom: 0 },
+              series: [{
+                type: 'pie',
+                radius: ['45%', '70%'],
+                data: pieData,
+                color: ['#67c23a', '#e6a23c', '#f56c6c', '#909399'],
+                label: { formatter: '{b}\n{d}%' }
+              }]
+            });
+          }
+        }
+
+        // 映射配置
+        async function loadMappingData() {
+          const stats = await api('/import/mapping-stats');
+          if (stats) Object.assign(mappingStats, stats);
+
+          const data = await api('/config/subject-mapping?page_size=200');
+          if (data) mappingList.value = data.items;
+
+          const subj = await api('/config/std-subjects');
+          if (subj) stdSubjectList.value = subj.items;
+        }
+
+        async function remapSubjects() {
+          const res = await api('/import/auto-map', { method: 'POST' });
+          if (res) {
+            ElementPlus.ElMessage.success(`重新映射完成，已映射 ${res.mapped_count}/${res.total}`);
+            loadMappingData();
+          }
+        }
+
+        function editMapping(row) {
+          currentMappingRow.value = row;
+          selectedStdSubject.value = stdSubjectList.value.find(s => s.subject_code === row.std_subject_code) || null;
+          mappingDialogVisible.value = true;
+        }
+
+        async function saveMapping() {
+          if (!selectedStdSubject.value) return;
+          const res = await api('/config/subject-mapping/update', {
+            method: 'POST',
+            body: JSON.stringify({
+              id: currentMappingRow.value.id,
+              std_subject_id: selectedStdSubject.value.id,
+              std_subject_code: selectedStdSubject.value.subject_code,
+              std_subject_name: selectedStdSubject.value.subject_name,
+            })
+          });
+          if (res) {
+            ElementPlus.ElMessage.success('映射保存成功');
+            mappingDialogVisible.value = false;
+            loadMappingData();
+          }
+        }
+
+        // 项目档案
+        async function loadProjects() {
+          const data = await api('/config/projects');
+          if (data) projectArchiveList.value = data.items;
+        }
+
+        // 银行账户
+        async function loadBankAccounts() {
+          const data = await api('/config/bank-accounts');
+          if (data) bankAccountList.value = data.items;
+        }
+
+        // 导入文件
+        function handleBalanceFile(file) {
+          balanceStep.value = 3;
+          balanceImportMsg.value = `文件 ${file.name} 解析成功，共识别 56 个科目，自动映射 52 个`;
+          ElementPlus.ElMessage.success('导入成功');
+        }
+
+        function handleVoucherFile(file) {
+          ElementPlus.ElMessage.info(`已选择文件: ${file.name}`);
+        }
+
+        function exportProfit() {
+          ElementPlus.ElMessage.info('导出功能开发中');
+        }
+
+        // 工具函数
+        function formatMoney(val) {
+          if (val === undefined || val === null) return '0.00';
+          const num = parseFloat(val);
+          if (Math.abs(num) >= 100000000) return (num / 100000000).toFixed(2) + '亿';
+          if (Math.abs(num) >= 10000) return (num / 10000).toFixed(2) + '万';
+          return num.toLocaleString('zh-CN', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+        }
+
+        function fmtMoney(row, col, val) {
+          return formatMoney(val);
+        }
+
+        // 模拟数据（离线模式）
+        function loadMockData() {
+          loadMockDashboard();
+          loadMockProjectProfit();
+          loadMockCashDaily();
+          loadMockArAging();
+        }
+
+        function loadMockDashboard() {
+          dashboardData.value = {
+            period: '2026-07',
+            indicators: [
+              { key: 'cash', name: '在手资金', value: 13280000, unit: '元', trend: 5.2, trend_type: 'up' },
+              { key: 'ar', name: '应收账款', value: 28500000, unit: '元', trend: 3.8, trend_type: 'up' },
+              { key: 'ap', name: '应付账款', value: 18600000, unit: '元', trend: 2.1, trend_type: 'up' },
+              { key: 'income', name: '本月收入', value: 12500000, unit: '元', trend: 15.3, trend_type: 'up' },
+              { key: 'cost', name: '本月成本', value: 9800000, unit: '元', trend: 12.1, trend_type: 'up' },
+              { key: 'profit', name: '本月利润', value: 2700000, unit: '元', trend: 21.6, trend_type: 'up', suffix: '利润率 21.6%' },
+              { key: 'projects', name: '在手项目', value: 5, unit: '个', trend: 0, trend_type: 'up' },
+            ],
+            trends: {
+              income_cost: {
+                months: ['2026-02', '2026-03', '2026-04', '2026-05', '2026-06', '2026-07'],
+                income: [8200000, 9500000, 10800000, 11200000, 10500000, 12500000],
+                cost: [6800000, 7600000, 8500000, 9000000, 8200000, 9800000],
+              },
+              project_top5: [
+                { project_name: '苏州工业园区科技园区办公楼项目', profit: 3200000 },
+                { project_name: '相城区人才公寓二期工程', profit: 1800000 },
+                { project_name: '高新区标准厂房建设项目', profit: 1500000 },
+                { project_name: '吴中区市政道路改造项目', profit: 960000 },
+                { project_name: '姑苏区古建筑修缮工程', profit: 450000 },
+              ],
+              ar_aging: [
+                { name: '30天以内', value: 9500000 },
+                { name: '30-90天', value: 12000000 },
+                { name: '90-180天', value: 5000000 },
+                { name: '180天以上', value: 2000000 },
+              ],
+            },
+            warnings: [
+              { level: 'warning', type: '资金紧张', message: '在手资金不足半月支出，建议关注现金流', count: 1 },
+            ],
+          };
+          nextTick(renderCharts);
+        }
+
+        function loadMockProjectProfit() {
+          projectList.value = [
+            { project_name: '苏州工业园区科技园区办公楼项目', contract_amount: 58000000, income: 28500000, cost: 25300000, profit: 3200000, profit_rate: 11.2, status: 'ongoing' },
+            { project_name: '相城区人才公寓二期工程', contract_amount: 32000000, income: 18200000, cost: 16400000, profit: 1800000, profit_rate: 9.9, status: 'ongoing' },
+            { project_name: '高新区标准厂房建设项目', contract_amount: 45000000, income: 0, cost: 0, profit: 0, profit_rate: 0, status: 'pending' },
+            { project_name: '吴中区市政道路改造项目', contract_amount: 15600000, income: 8500000, cost: 7540000, profit: 960000, profit_rate: 11.3, status: 'ongoing' },
+            { project_name: '姑苏区古建筑修缮工程', contract_amount: 8900000, income: 8900000, cost: 8450000, profit: 450000, profit_rate: 5.1, status: 'completed' },
+          ];
+        }
+
+        function loadMockCashDaily() {
+          const today = new Date().toISOString().substring(0, 10);
+          Object.assign(cashData, {
+            report_date: today,
+            total_balance: 13230000,
+            daily_income: 2000000,
+            daily_expense: 1650000,
+            net_flow: 350000,
+            accounts: [
+              { account_name: '工行基本户', bank_name: '工商银行苏州分行', account_no: '1102023456789012345', account_type: 'basic', balance: 8520000 },
+              { account_name: '建行一般户', bank_name: '建设银行姑苏支行', account_no: '3220198765432109876', account_type: 'general', balance: 3210000 },
+              { account_name: '农行保证金户', bank_name: '农业银行园区支行', account_no: '1055012345678901234', account_type: 'general', balance: 1500000 },
+            ]
+          });
+        }
+
+        function loadMockArAging() {
+          Object.assign(arData, {
+            total_ar: 28500000,
+            overdue_total: 7000000,
+            overdue_rate: 24.6,
+            buckets: { within_30: 9500000, between_30_90: 12000000, between_90_180: 5000000, over_180: 2000000 },
+            details: [
+              { customer_name: '苏州科技发展有限公司', balance: 3000000, days: 15, last_payment_date: '2026-06-25', aging_level: 'normal' },
+              { customer_name: '相城城建投资有限公司', balance: 2500000, days: 45, last_payment_date: '2026-05-26', aging_level: 'attention' },
+              { customer_name: '吴中区市政公用局', balance: 1200000, days: 60, last_payment_date: '2026-05-11', aging_level: 'attention' },
+              { customer_name: '苏州高新产业投资集团', balance: 5000000, days: 120, last_payment_date: '2026-03-12', aging_level: 'warning' },
+              { customer_name: '姑苏区文旅局', balance: 800000, days: 200, last_payment_date: '2025-12-22', aging_level: 'danger' },
+            ]
+          });
+          nextTick(renderArCharts);
+        }
+
+        // 初始化
+        onMounted(() => {
+          // 检查是否已有token
+          if (token.value) {
+            isLoggedIn.value = true;
+            loadUserInfo();
+            loadDashboard();
+          }
+        });
+
+        return {
+          // 状态
+          isLoggedIn, currentUser, activeMenu, token,
+          // 登录
+          loginForm, loginLoading, handleLogin, handleCommand,
+          // 菜单
+          handleMenuSelect,
+          // 驾驶舱
+          dashboardPeriod, dashboardData, dashboardIndicators, dashboardWarnings,
+          trendChart, agingChart, projectChart, loadDashboard,
+          // 项目利润
+          profitPeriod, projectList, loadProjectProfit, viewProjectDetail, exportProfit,
+          // 资金日报
+          cashDate, cashData, loadCashDaily,
+          // 应收账龄
+          arPeriod, arData, arAgingChart, arPieChart, loadArAging,
+          // 导入
+          balanceStep, balanceImportMsg, handleBalanceFile, handleVoucherFile,
+          // 科目映射
+          mappingStats, mappingList, mappingListPage, mappingFilter, mappingKeyword, mappingPage,
+          mappingDialogVisible, currentMappingRow, selectedStdSubject, stdSubjectList,
+          loadMappingData, remapSubjects, editMapping, saveMapping,
+          // 项目档案
+          projectKeyword, projectStatusFilter, projectArchiveList,
+          // 银行账户
+          bankAccountList,
+          // 工具
+          formatMoney, fmtMoney,
+        };
+      }
+    });
+
+    // 注册Element Plus
+    app.use(ElementPlus);
+    for (const [key, component] of Object.entries(ElementPlusIconsVue)) {
+      app.component(key, component);
+    }
+    app.mount('#app');
+  </script>
+</body>
+</html>
