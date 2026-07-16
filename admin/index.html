@@ -4,6 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>税检康 · 线索管理后台</title>
+<script src="https://imgcache.qq.com/qcloud/cloudbase-js-sdk/2.7.1/cloudbase.full.js"></script>
 <style>
 /* ========== 全局样式 ========== */
 * { margin: 0; padding: 0; box-sizing: border-box; }
@@ -894,11 +895,33 @@ const ADMIN_PASSWORD = 'hgttax_admin_2026';
 const STORAGE_KEY = 'taxcheck_admin_logged_in';
 const PAGE_SIZE = 10;
 
-// 云函数HTTP触发地址（部署后替换为实际地址）
-const API_BASE = '/api';  // 可配置为云函数HTTP触发域名
-const API_LIST = `${API_BASE}/adminList`;
-const API_UPDATE = `${API_BASE}/adminUpdate`;
-const API_GEN_REPORT = `${API_BASE}/adminGenReport`;
+// ============================================================
+//  云开发配置：使用Web SDK直接调用云函数
+// ============================================================
+const CLOUD_ENV_ID = 'cloudbase-d4g5g56s11509890d';
+let cloudApp = null;
+let cloudInited = false;
+
+// 初始化云开发
+async function initCloud() {
+    if (cloudInited) return cloudApp;
+    if (typeof cloudbase === 'undefined') {
+        console.warn('云开发SDK未加载');
+        return null;
+    }
+    try {
+        cloudApp = cloudbase.init({ env: CLOUD_ENV_ID });
+        const auth = cloudApp.auth({ persistence: 'local' });
+        if (!auth.hasLoginState()) {
+            await auth.anonymousAuthProvider().signIn();
+        }
+        cloudInited = true;
+        return cloudApp;
+    } catch (e) {
+        console.error('云开发初始化失败:', e);
+        return null;
+    }
+}
 
 // ============================================================
 //  状态
@@ -989,13 +1012,19 @@ async function loadLeads(forceRefresh = false) {
 }
 
 async function fetchLeadsFromAPI() {
-    // 实际部署时从云函数获取
-    // const res = await fetch(API_LIST + '?t=' + Date.now());
-    // const data = await res.json();
-    // return data.list || [];
-    
-    // 目前API不可用，抛出错误使用模拟数据
-    throw new Error('API not configured');
+    const app = await initCloud();
+    if (!app) {
+        throw new Error('云开发不可用');
+    }
+    const res = await app.callFunction({
+        name: 'adminList',
+        data: { pageSize: 100 }
+    });
+    const result = res.result || {};
+    if (result.code !== 0) {
+        throw new Error(result.msg || 'API error');
+    }
+    return result.data.list || [];
 }
 
 function handleSearch() {
@@ -1371,19 +1400,17 @@ async function saveFollowup() {
 }
 
 async function updateLeadAPI(id, data) {
-    // 实际部署时调用云函数
-    // const res = await fetch(API_UPDATE, {
-    //     method: 'POST',
-    //     headers: { 'Content-Type': 'application/json' },
-    //     body: JSON.stringify({ recordId: id, ...data })
-    // });
-    // const result = await res.json();
-    // if (result.code !== 0) throw new Error(result.msg);
-    // return result;
-    
-    // 模拟延迟
-    await new Promise(r => setTimeout(r, 500));
-    return { success: true };
+    const app = await initCloud();
+    if (!app) {
+        throw new Error('云开发不可用');
+    }
+    const res = await app.callFunction({
+        name: 'adminUpdate',
+        data: { recordId: id, action: 'updateFollow', ...data }
+    });
+    const result = res.result || {};
+    if (result.code !== 0) throw new Error(result.msg || '更新失败');
+    return result;
 }
 
 // ============================================================
@@ -1407,18 +1434,17 @@ async function genReport(id) {
 }
 
 async function genReportAPI(id) {
-    // 实际部署时调用云函数触发生成
-    // const res = await fetch(API_GEN_REPORT, {
-    //     method: 'POST',
-    //     headers: { 'Content-Type': 'application/json' },
-    //     body: JSON.stringify({ recordId: id })
-    // });
-    // const result = await res.json();
-    // if (result.code !== 0) throw new Error(result.msg);
-    // return result;
-    
-    await new Promise(r => setTimeout(r, 1500));
-    return { success: true };
+    const app = await initCloud();
+    if (!app) {
+        throw new Error('云开发不可用');
+    }
+    const res = await app.callFunction({
+        name: 'adminGenReport',
+        data: { recordId: id, reportType: 'auto' }
+    });
+    const result = res.result || {};
+    if (result.code !== 0) throw new Error(result.msg || '生成失败');
+    return result;
 }
 
 function downloadReport() {
