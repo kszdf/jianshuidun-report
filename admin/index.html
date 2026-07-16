@@ -1,0 +1,1632 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>税检康 · 线索管理后台</title>
+<style>
+/* ========== 全局样式 ========== */
+* { margin: 0; padding: 0; box-sizing: border-box; }
+body {
+    font-family: -apple-system, "Microsoft YaHei", "微软雅黑", sans-serif;
+    background: #f0f2f5;
+    color: #333;
+    font-size: 14px;
+}
+
+/* 颜色变量 */
+:root {
+    --primary: #1a365d;       /* 深蓝主色 */
+    --primary-light: #2c5282; /* 浅蓝 */
+    --primary-dark: #0f2744;  /* 深蓝暗 */
+    --gold: #d4af37;          /* 香槟金 */
+    --gold-light: #e8c95b;    /* 浅金 */
+    --gold-dark: #b8941f;     /* 深金 */
+    --text-primary: #1a202c;
+    --text-secondary: #718096;
+    --text-tertiary: #a0aec0;
+    --border: #e2e8f0;
+    --bg-light: #f7fafc;
+    --success: #38a169;
+    --warning: #dd6b20;
+    --danger: #e53e3e;
+    --info: #3182ce;
+}
+
+/* ========== 登录页 ========== */
+#loginPage {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    min-height: 100vh;
+    background: linear-gradient(135deg, #0f2744 0%, #1a365d 50%, #2c5282 100%);
+    position: relative;
+    overflow: hidden;
+}
+#loginPage::before {
+    content: '';
+    position: absolute;
+    top: -50%;
+    right: -20%;
+    width: 600px;
+    height: 600px;
+    background: radial-gradient(circle, rgba(212,175,55,0.15) 0%, transparent 70%);
+    border-radius: 50%;
+}
+#loginPage::after {
+    content: '';
+    position: absolute;
+    bottom: -30%;
+    left: -10%;
+    width: 500px;
+    height: 500px;
+    background: radial-gradient(circle, rgba(212,175,55,0.1) 0%, transparent 70%);
+    border-radius: 50%;
+}
+
+.login-box {
+    background: rgba(255,255,255,0.98);
+    padding: 50px 45px;
+    border-radius: 12px;
+    box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+    width: 400px;
+    position: relative;
+    z-index: 10;
+    border-top: 4px solid var(--gold);
+}
+
+.login-logo {
+    text-align: center;
+    margin-bottom: 30px;
+}
+.login-logo .logo-icon {
+    width: 60px;
+    height: 60px;
+    background: linear-gradient(135deg, var(--primary), var(--primary-light));
+    border-radius: 12px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin: 0 auto 15px;
+    color: var(--gold);
+    font-size: 28px;
+    font-weight: bold;
+}
+.login-logo h1 {
+    color: var(--primary);
+    font-size: 22px;
+    margin-bottom: 5px;
+}
+.login-logo p {
+    color: var(--text-secondary);
+    font-size: 13px;
+}
+
+.login-form .form-group {
+    margin-bottom: 20px;
+}
+.login-form label {
+    display: block;
+    color: var(--text-secondary);
+    font-size: 13px;
+    margin-bottom: 8px;
+}
+.login-form input {
+    width: 100%;
+    padding: 12px 15px;
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    font-size: 14px;
+    transition: all 0.3s;
+    outline: none;
+}
+.login-form input:focus {
+    border-color: var(--gold);
+    box-shadow: 0 0 0 3px rgba(212,175,55,0.15);
+}
+
+.login-btn {
+    width: 100%;
+    padding: 13px;
+    background: linear-gradient(135deg, var(--primary), var(--primary-light));
+    color: white;
+    border: none;
+    border-radius: 8px;
+    font-size: 15px;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.3s;
+    margin-top: 10px;
+}
+.login-btn:hover {
+    background: linear-gradient(135deg, var(--primary-dark), var(--primary));
+    transform: translateY(-1px);
+    box-shadow: 0 5px 15px rgba(26,54,93,0.3);
+}
+
+.login-error {
+    color: var(--danger);
+    font-size: 12px;
+    margin-top: 8px;
+    text-align: center;
+    display: none;
+}
+
+/* ========== 主布局 ========== */
+#mainApp { display: none; }
+
+/* 顶部导航 */
+.top-bar {
+    background: linear-gradient(90deg, var(--primary-dark), var(--primary));
+    color: white;
+    padding: 0 30px;
+    height: 60px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.15);
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    z-index: 100;
+}
+
+.top-bar .logo-area {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+.top-bar .logo-icon {
+    width: 36px;
+    height: 36px;
+    background: var(--gold);
+    border-radius: 8px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: var(--primary);
+    font-size: 18px;
+    font-weight: bold;
+}
+.top-bar h1 {
+    font-size: 18px;
+    font-weight: 600;
+}
+.top-bar h1 span {
+    color: var(--gold);
+    font-weight: 400;
+    font-size: 13px;
+    margin-left: 8px;
+}
+
+.top-bar .user-area {
+    display: flex;
+    align-items: center;
+    gap: 15px;
+}
+.top-bar .user-name {
+    font-size: 14px;
+}
+.top-bar .logout-btn {
+    padding: 6px 14px;
+    background: rgba(255,255,255,0.1);
+    border: 1px solid rgba(255,255,255,0.2);
+    color: white;
+    border-radius: 6px;
+    cursor: pointer;
+    font-size: 13px;
+    transition: all 0.3s;
+}
+.top-bar .logout-btn:hover {
+    background: rgba(255,255,255,0.2);
+}
+
+/* 主体内容区 */
+.main-content {
+    margin-top: 60px;
+    padding: 20px 30px;
+    min-height: calc(100vh - 60px);
+}
+
+/* ========== 统计卡片 ========== */
+.stats-cards {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 16px;
+    margin-bottom: 20px;
+}
+.stat-card {
+    background: white;
+    padding: 20px;
+    border-radius: 10px;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.06);
+    border-left: 4px solid var(--primary);
+}
+.stat-card.gold { border-left-color: var(--gold); }
+.stat-card.green { border-left-color: var(--success); }
+.stat-card.orange { border-left-color: var(--warning); }
+
+.stat-card .stat-label {
+    color: var(--text-secondary);
+    font-size: 13px;
+    margin-bottom: 8px;
+}
+.stat-card .stat-value {
+    font-size: 28px;
+    font-weight: 600;
+    color: var(--primary);
+}
+.stat-card .stat-sub {
+    font-size: 12px;
+    color: var(--text-tertiary);
+    margin-top: 5px;
+}
+
+/* ========== 筛选栏 ========== */
+.filter-bar {
+    background: white;
+    padding: 16px 20px;
+    border-radius: 10px;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.06);
+    margin-bottom: 16px;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 12px;
+    align-items: center;
+}
+
+.filter-bar .search-box {
+    flex: 1;
+    min-width: 250px;
+    position: relative;
+}
+.filter-bar .search-box input {
+    width: 100%;
+    padding: 10px 15px 10px 40px;
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    font-size: 14px;
+    outline: none;
+    transition: all 0.3s;
+}
+.filter-bar .search-box input:focus {
+    border-color: var(--gold);
+    box-shadow: 0 0 0 3px rgba(212,175,55,0.15);
+}
+.filter-bar .search-icon {
+    position: absolute;
+    left: 12px;
+    top: 50%;
+    transform: translateY(-50%);
+    color: var(--text-tertiary);
+}
+
+.filter-bar select {
+    padding: 10px 12px;
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    font-size: 13px;
+    background: white;
+    cursor: pointer;
+    outline: none;
+    min-width: 120px;
+}
+.filter-bar select:focus {
+    border-color: var(--gold);
+}
+
+.filter-bar .refresh-btn {
+    padding: 10px 18px;
+    background: var(--primary);
+    color: white;
+    border: none;
+    border-radius: 8px;
+    cursor: pointer;
+    font-size: 13px;
+    transition: all 0.3s;
+}
+.filter-bar .refresh-btn:hover {
+    background: var(--primary-light);
+}
+
+/* ========== 数据表格 ========== */
+.table-container {
+    background: white;
+    border-radius: 10px;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.06);
+    overflow: hidden;
+}
+
+.data-table {
+    width: 100%;
+    border-collapse: collapse;
+}
+.data-table thead {
+    background: linear-gradient(90deg, var(--primary-dark), var(--primary));
+    color: white;
+}
+.data-table th {
+    padding: 14px 12px;
+    text-align: left;
+    font-weight: 500;
+    font-size: 13px;
+    white-space: nowrap;
+}
+.data-table tbody tr {
+    border-bottom: 1px solid var(--border);
+    transition: background 0.2s;
+}
+.data-table tbody tr:hover {
+    background: var(--bg-light);
+}
+.data-table td {
+    padding: 12px;
+    font-size: 13px;
+    color: var(--text-primary);
+}
+
+/* 风险等级标签 */
+.risk-badge {
+    display: inline-block;
+    padding: 3px 10px;
+    border-radius: 12px;
+    font-size: 12px;
+    font-weight: 500;
+}
+.risk-critical { background: #fed7d7; color: #9b2c2c; }
+.risk-high { background: #feebc8; color: #7b341e; }
+.risk-medium-high { background: #fefcbf; color: #744210; }
+.risk-medium { background: #c6f6d5; color: #22543d; }
+.risk-low { background: #bee3f8; color: #2a4365; }
+
+/* 数据来源标签 */
+.source-badge {
+    display: inline-block;
+    padding: 3px 10px;
+    border-radius: 12px;
+    font-size: 12px;
+    font-weight: 500;
+}
+.source-deep { background: #e9d8fd; color: #553c9a; }
+.source-self { background: #c6f6d5; color: #22543d; }
+
+/* 跟进状态标签 */
+.status-badge {
+    display: inline-block;
+    padding: 3px 10px;
+    border-radius: 12px;
+    font-size: 12px;
+    font-weight: 500;
+}
+.status-pending { background: #fed7d7; color: #9b2c2c; }
+.status-contacted { background: #fefcbf; color: #744210; }
+.status-quoted { background: #bee3f8; color: #2a4365; }
+.status-won { background: #c6f6d5; color: #22543d; }
+.status-lost { background: #e2e8f0; color: #4a5568; }
+
+/* 操作按钮 */
+.action-btn {
+    padding: 5px 12px;
+    border: none;
+    border-radius: 6px;
+    cursor: pointer;
+    font-size: 12px;
+    margin-right: 5px;
+    transition: all 0.2s;
+}
+.action-btn.primary {
+    background: var(--primary);
+    color: white;
+}
+.action-btn.primary:hover { background: var(--primary-light); }
+.action-btn.gold {
+    background: var(--gold);
+    color: white;
+}
+.action-btn.gold:hover { background: var(--gold-dark); }
+.action-btn.outline {
+    background: white;
+    border: 1px solid var(--border);
+    color: var(--text-secondary);
+}
+.action-btn.outline:hover {
+    border-color: var(--gold);
+    color: var(--gold-dark);
+}
+
+/* ========== 分页 ========== */
+.pagination {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 15px 20px;
+    background: white;
+    border-top: 1px solid var(--border);
+}
+.pagination .page-info {
+    font-size: 13px;
+    color: var(--text-secondary);
+}
+.pagination .page-buttons {
+    display: flex;
+    gap: 5px;
+}
+.pagination .page-btn {
+    padding: 6px 12px;
+    border: 1px solid var(--border);
+    background: white;
+    border-radius: 6px;
+    cursor: pointer;
+    font-size: 13px;
+    transition: all 0.2s;
+}
+.pagination .page-btn:hover {
+    border-color: var(--gold);
+    color: var(--gold-dark);
+}
+.pagination .page-btn.active {
+    background: var(--primary);
+    border-color: var(--primary);
+    color: white;
+}
+.pagination .page-btn:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+}
+
+/* ========== 详情弹窗 ========== */
+.modal-overlay {
+    display: none;
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(0,0,0,0.5);
+    z-index: 200;
+    justify-content: center;
+    align-items: flex-start;
+    padding: 30px 0;
+    overflow-y: auto;
+}
+.modal-overlay.active {
+    display: flex;
+}
+
+.modal {
+    background: white;
+    border-radius: 12px;
+    width: 90%;
+    max-width: 900px;
+    max-height: calc(100vh - 60px);
+    display: flex;
+    flex-direction: column;
+    box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+}
+
+.modal-header {
+    padding: 20px 25px;
+    border-bottom: 1px solid var(--border);
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    background: linear-gradient(90deg, var(--primary-dark), var(--primary));
+    color: white;
+    border-radius: 12px 12px 0 0;
+}
+.modal-header h2 {
+    font-size: 18px;
+    font-weight: 500;
+}
+.modal-header .close-btn {
+    background: none;
+    border: none;
+    color: white;
+    font-size: 24px;
+    cursor: pointer;
+    opacity: 0.8;
+    transition: opacity 0.2s;
+}
+.modal-header .close-btn:hover { opacity: 1; }
+
+.modal-body {
+    padding: 25px;
+    overflow-y: auto;
+    flex: 1;
+}
+
+.modal-footer {
+    padding: 15px 25px;
+    border-top: 1px solid var(--border);
+    display: flex;
+    justify-content: flex-end;
+    gap: 10px;
+    background: var(--bg-light);
+    border-radius: 0 0 12px 12px;
+}
+
+/* 详情区块 */
+.detail-section {
+    margin-bottom: 25px;
+}
+.detail-section h3 {
+    font-size: 15px;
+    color: var(--primary);
+    margin-bottom: 12px;
+    padding-bottom: 8px;
+    border-bottom: 2px solid var(--gold);
+    display: inline-block;
+}
+
+.detail-grid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 10px 20px;
+}
+.detail-item {
+    display: flex;
+    font-size: 13px;
+}
+.detail-item .label {
+    color: var(--text-secondary);
+    min-width: 90px;
+    flex-shrink: 0;
+}
+.detail-item .value {
+    color: var(--text-primary);
+    font-weight: 500;
+}
+
+/* 自测详情 */
+.self-test-detail {
+    background: var(--bg-light);
+    padding: 15px;
+    border-radius: 8px;
+    margin-top: 10px;
+}
+.dimension-scores {
+    display: grid;
+    grid-template-columns: repeat(5, 1fr);
+    gap: 10px;
+    margin-bottom: 15px;
+}
+.dim-score-card {
+    background: white;
+    padding: 12px;
+    border-radius: 8px;
+    text-align: center;
+    border-top: 3px solid var(--gold);
+}
+.dim-score-card .dim-name {
+    font-size: 12px;
+    color: var(--text-secondary);
+    margin-bottom: 5px;
+}
+.dim-score-card .dim-score {
+    font-size: 20px;
+    font-weight: 600;
+    color: var(--primary);
+}
+
+/* 跟进备注 */
+.followup-section {
+    margin-top: 15px;
+}
+.status-selector {
+    display: flex;
+    gap: 8px;
+    margin-bottom: 12px;
+    flex-wrap: wrap;
+}
+.status-option {
+    padding: 6px 14px;
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    cursor: pointer;
+    font-size: 13px;
+    transition: all 0.2s;
+}
+.status-option:hover {
+    border-color: var(--gold);
+}
+.status-option.active {
+    background: var(--primary);
+    border-color: var(--primary);
+    color: white;
+}
+
+.remark-input {
+    width: 100%;
+    padding: 10px 12px;
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    font-size: 13px;
+    min-height: 80px;
+    resize: vertical;
+    outline: none;
+    font-family: inherit;
+}
+.remark-input:focus {
+    border-color: var(--gold);
+    box-shadow: 0 0 0 3px rgba(212,175,55,0.15);
+}
+
+.remark-list {
+    margin-top: 15px;
+    max-height: 200px;
+    overflow-y: auto;
+}
+.remark-item {
+    padding: 10px;
+    background: var(--bg-light);
+    border-radius: 6px;
+    margin-bottom: 8px;
+    font-size: 12px;
+}
+.remark-item .remark-time {
+    color: var(--text-tertiary);
+    margin-bottom: 4px;
+}
+.remark-item .remark-content {
+    color: var(--text-primary);
+    line-height: 1.5;
+}
+
+/* ========== 加载动画 ========== */
+.loading {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    padding: 40px;
+    color: var(--text-secondary);
+}
+.loading::after {
+    content: '';
+    width: 30px;
+    height: 30px;
+    border: 3px solid var(--border);
+    border-top-color: var(--gold);
+    border-radius: 50%;
+    animation: spin 0.8s linear infinite;
+    margin-right: 10px;
+}
+@keyframes spin {
+    to { transform: rotate(360deg); }
+}
+
+/* 空状态 */
+.empty-state {
+    text-align: center;
+    padding: 60px 20px;
+    color: var(--text-tertiary);
+}
+.empty-state .empty-icon {
+    font-size: 48px;
+    margin-bottom: 15px;
+}
+
+/* Toast 提示 */
+.toast {
+    position: fixed;
+    top: 80px;
+    right: 30px;
+    padding: 12px 20px;
+    background: white;
+    border-radius: 8px;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+    z-index: 300;
+    display: none;
+    animation: slideIn 0.3s ease;
+    border-left: 4px solid var(--success);
+}
+.toast.error { border-left-color: var(--danger); }
+.toast.show { display: block; }
+@keyframes slideIn {
+    from { transform: translateX(100%); opacity: 0; }
+    to { transform: translateX(0); opacity: 1; }
+}
+
+/* ========== 响应式 ========== */
+@media (max-width: 1200px) {
+    .stats-cards { grid-template-columns: repeat(2, 1fr); }
+}
+@media (max-width: 768px) {
+    .stats-cards { grid-template-columns: 1fr; }
+    .detail-grid { grid-template-columns: 1fr; }
+    .dimension-scores { grid-template-columns: repeat(2, 1fr); }
+    .main-content { padding: 15px; }
+    .top-bar { padding: 0 15px; }
+}
+</style>
+</head>
+<body>
+
+<!-- ========== 登录页 ========== -->
+<div id="loginPage">
+    <div class="login-box">
+        <div class="login-logo">
+            <div class="logo-icon">税</div>
+            <h1>税检康线索管理后台</h1>
+            <p>Tax Check Admin Dashboard</p>
+        </div>
+        <div class="login-form">
+            <div class="form-group">
+                <label>管理员密码</label>
+                <input type="password" id="passwordInput" placeholder="请输入管理员密码" autocomplete="off">
+            </div>
+            <div class="login-error" id="loginError">密码错误，请重试</div>
+            <button class="login-btn" onclick="doLogin()">登 录</button>
+        </div>
+    </div>
+</div>
+
+<!-- ========== 主应用 ========== -->
+<div id="mainApp">
+    <!-- 顶部导航 -->
+    <div class="top-bar">
+        <div class="logo-area">
+            <div class="logo-icon">税</div>
+            <h1>税检康线索管理 <span>Admin v1.0</span></h1>
+        </div>
+        <div class="user-area">
+            <span class="user-name">管理员</span>
+            <button class="logout-btn" onclick="doLogout()">退出登录</button>
+        </div>
+    </div>
+
+    <!-- 主体内容 -->
+    <div class="main-content">
+        <!-- 统计卡片 -->
+        <div class="stats-cards">
+            <div class="stat-card">
+                <div class="stat-label">线索总数</div>
+                <div class="stat-value" id="statTotal">0</div>
+                <div class="stat-sub">全部线索记录</div>
+            </div>
+            <div class="stat-card gold">
+                <div class="stat-label">待联系</div>
+                <div class="stat-value" id="statPending">0</div>
+                <div class="stat-sub">需要跟进的线索</div>
+            </div>
+            <div class="stat-card green">
+                <div class="stat-label">本月新增</div>
+                <div class="stat-value" id="statMonthly">0</div>
+                <div class="stat-sub">本月新增线索数</div>
+            </div>
+            <div class="stat-card orange">
+                <div class="stat-label">高风险线索</div>
+                <div class="stat-value" id="statHighRisk">0</div>
+                <div class="stat-sub">极高/高风险线索</div>
+            </div>
+        </div>
+
+        <!-- 筛选栏 -->
+        <div class="filter-bar">
+            <div class="search-box">
+                <span class="search-icon">🔍</span>
+                <input type="text" id="searchInput" placeholder="搜索企业名称 / 联系人 / 手机号" oninput="handleSearch()">
+            </div>
+            <select id="sourceFilter" onchange="loadLeads()">
+                <option value="">全部数据来源</option>
+                <option value="税检康自测">税检康自测</option>
+                <option value="深度检测">深度检测</option>
+            </select>
+            <select id="riskFilter" onchange="loadLeads()">
+                <option value="">全部风险等级</option>
+                <option value="极高风险">极高风险</option>
+                <option value="高风险">高风险</option>
+                <option value="中高风险">中高风险</option>
+                <option value="中风险">中风险</option>
+                <option value="低风险">低风险</option>
+            </select>
+            <select id="statusFilter" onchange="loadLeads()">
+                <option value="">全部跟进状态</option>
+                <option value="待联系">待联系</option>
+                <option value="已联系">已联系</option>
+                <option value="已报价">已报价</option>
+                <option value="已成单">已成单</option>
+                <option value="已流失">已流失</option>
+            </select>
+            <button class="refresh-btn" onclick="loadLeads(true)">🔄 刷新</button>
+        </div>
+
+        <!-- 数据表格 -->
+        <div class="table-container">
+            <table class="data-table">
+                <thead>
+                    <tr>
+                        <th>企业名称</th>
+                        <th>联系人</th>
+                        <th>手机号</th>
+                        <th>数据来源</th>
+                        <th>风险等级</th>
+                        <th>跟进状态</th>
+                        <th>提交时间</th>
+                        <th style="width: 200px;">操作</th>
+                    </tr>
+                </thead>
+                <tbody id="leadTableBody">
+                    <tr><td colspan="8"><div class="loading">加载中...</div></td></tr>
+                </tbody>
+            </table>
+
+            <!-- 分页 -->
+            <div class="pagination">
+                <div class="page-info" id="pageInfo">共 0 条记录</div>
+                <div class="page-buttons" id="pageButtons">
+                    <button class="page-btn" disabled>上一页</button>
+                    <button class="page-btn active">1</button>
+                    <button class="page-btn" disabled>下一页</button>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- ========== 详情弹窗 ========== -->
+<div class="modal-overlay" id="detailModal">
+    <div class="modal">
+        <div class="modal-header">
+            <h2 id="modalTitle">线索详情</h2>
+            <button class="close-btn" onclick="closeModal()">&times;</button>
+        </div>
+        <div class="modal-body" id="modalBody">
+            <!-- 动态内容 -->
+        </div>
+        <div class="modal-footer">
+            <button class="action-btn outline" onclick="closeModal()">关闭</button>
+            <button class="action-btn gold" onclick="downloadReport()">📄 下载报告</button>
+            <button class="action-btn primary" onclick="saveFollowup()">💾 保存跟进</button>
+        </div>
+    </div>
+</div>
+
+<!-- ========== Toast 提示 ========== -->
+<div class="toast" id="toast">操作成功</div>
+
+<script>
+// ============================================================
+//  配置
+// ============================================================
+
+const ADMIN_PASSWORD = 'hgttax_admin_2026';
+const STORAGE_KEY = 'taxcheck_admin_logged_in';
+const PAGE_SIZE = 10;
+
+// 云函数HTTP触发地址（部署后替换为实际地址）
+const API_BASE = '/api';  // 可配置为云函数HTTP触发域名
+const API_LIST = `${API_BASE}/adminList`;
+const API_UPDATE = `${API_BASE}/adminUpdate`;
+const API_GEN_REPORT = `${API_BASE}/adminGenReport`;
+
+// ============================================================
+//  状态
+// ============================================================
+
+let currentPage = 1;
+let allLeads = [];
+let filteredLeads = [];
+let currentLead = null;
+let isLoading = false;
+
+// ============================================================
+//  登录/登出
+// ============================================================
+
+function doLogin() {
+    const pwd = document.getElementById('passwordInput').value;
+    const errorEl = document.getElementById('loginError');
+    
+    if (pwd === ADMIN_PASSWORD) {
+        sessionStorage.setItem(STORAGE_KEY, '1');
+        document.getElementById('loginPage').style.display = 'none';
+        document.getElementById('mainApp').style.display = 'block';
+        errorEl.style.display = 'none';
+        initApp();
+    } else {
+        errorEl.style.display = 'block';
+    }
+}
+
+function doLogout() {
+    sessionStorage.removeItem(STORAGE_KEY);
+    document.getElementById('loginPage').style.display = 'flex';
+    document.getElementById('mainApp').style.display = 'none';
+    document.getElementById('passwordInput').value = '';
+}
+
+function checkLogin() {
+    const logged = sessionStorage.getItem(STORAGE_KEY);
+    if (logged === '1') {
+        document.getElementById('loginPage').style.display = 'none';
+        document.getElementById('mainApp').style.display = 'block';
+        initApp();
+    } else {
+        document.getElementById('loginPage').style.display = 'flex';
+        document.getElementById('mainApp').style.display = 'none';
+    }
+}
+
+// 回车登录
+document.getElementById('passwordInput').addEventListener('keypress', function(e) {
+    if (e.key === 'Enter') doLogin();
+});
+
+// ============================================================
+//  初始化
+// ============================================================
+
+function initApp() {
+    loadLeads();
+}
+
+// ============================================================
+//  线索列表加载
+// ============================================================
+
+async function loadLeads(forceRefresh = false) {
+    if (isLoading) return;
+    isLoading = true;
+    
+    const tbody = document.getElementById('leadTableBody');
+    tbody.innerHTML = '<tr><td colspan="8"><div class="loading">加载中...</div></td></tr>';
+    
+    try {
+        // 尝试从云函数API获取数据
+        const data = await fetchLeadsFromAPI();
+        allLeads = data;
+    } catch (e) {
+        console.warn('API获取失败，使用模拟数据:', e);
+        // API不可用时使用模拟数据（开发/演示用）
+        allLeads = getMockData();
+    }
+    
+    isLoading = false;
+    applyFilters();
+    renderStats();
+    renderTable();
+}
+
+async function fetchLeadsFromAPI() {
+    // 实际部署时从云函数获取
+    // const res = await fetch(API_LIST + '?t=' + Date.now());
+    // const data = await res.json();
+    // return data.list || [];
+    
+    // 目前API不可用，抛出错误使用模拟数据
+    throw new Error('API not configured');
+}
+
+function handleSearch() {
+    currentPage = 1;
+    applyFilters();
+    renderTable();
+}
+
+function applyFilters() {
+    const search = document.getElementById('searchInput').value.trim().toLowerCase();
+    const source = document.getElementById('sourceFilter').value;
+    const risk = document.getElementById('riskFilter').value;
+    const status = document.getElementById('statusFilter').value;
+    
+    filteredLeads = allLeads.filter(lead => {
+        // 搜索过滤
+        if (search) {
+            const name = (lead.companyName || '').toLowerCase();
+            const contact = (lead.contact || '').toLowerCase();
+            const phone = (lead.phone || '').toLowerCase();
+            if (!name.includes(search) && !contact.includes(search) && !phone.includes(search)) {
+                return false;
+            }
+        }
+        // 来源过滤
+        if (source && lead.dataSource !== source) return false;
+        // 风险等级过滤
+        if (risk && lead.riskLevel !== risk) return false;
+        // 状态过滤
+        if (status && lead.followStatus !== status) return false;
+        
+        return true;
+    });
+}
+
+// ============================================================
+//  统计卡片
+// ============================================================
+
+function renderStats() {
+    const total = allLeads.length;
+    const pending = allLeads.filter(l => l.followStatus === '待联系').length;
+    
+    const now = new Date();
+    const thisMonth = allLeads.filter(l => {
+        const d = new Date(l.submitTime);
+        return d.getMonth() === now.getMonth() && d.getFullYear() === now.getFullYear();
+    }).length;
+    
+    const highRisk = allLeads.filter(l => 
+        l.riskLevel === '极高风险' || l.riskLevel === '高风险'
+    ).length;
+    
+    document.getElementById('statTotal').textContent = total;
+    document.getElementById('statPending').textContent = pending;
+    document.getElementById('statMonthly').textContent = thisMonth;
+    document.getElementById('statHighRisk').textContent = highRisk;
+}
+
+// ============================================================
+//  表格渲染
+// ============================================================
+
+function renderTable() {
+    const tbody = document.getElementById('leadTableBody');
+    
+    if (filteredLeads.length === 0) {
+        tbody.innerHTML = `
+            <tr><td colspan="8">
+                <div class="empty-state">
+                    <div class="empty-icon">📋</div>
+                    <div>暂无符合条件的线索</div>
+                </div>
+            </td></tr>`;
+        renderPagination();
+        return;
+    }
+    
+    // 分页
+    const totalPages = Math.ceil(filteredLeads.length / PAGE_SIZE);
+    if (currentPage > totalPages) currentPage = totalPages;
+    const start = (currentPage - 1) * PAGE_SIZE;
+    const pageData = filteredLeads.slice(start, start + PAGE_SIZE);
+    
+    tbody.innerHTML = pageData.map(lead => `
+        <tr>
+            <td style="font-weight: 500;">${escapeHtml(lead.companyName || '-')}</td>
+            <td>${escapeHtml(lead.contact || '-')}</td>
+            <td>${escapeHtml(lead.phone || '-')}</td>
+            <td>${renderSourceBadge(lead.dataSource)}</td>
+            <td>${renderRiskBadge(lead.riskLevel)}</td>
+            <td>${renderStatusBadge(lead.followStatus)}</td>
+            <td style="color: var(--text-secondary);">${formatDate(lead.submitTime)}</td>
+            <td>
+                <button class="action-btn primary" onclick="viewDetail('${lead.id}')">详情</button>
+                <button class="action-btn gold" onclick="genReport('${lead.id}')">生成报告</button>
+            </td>
+        </tr>
+    `).join('');
+    
+    renderPagination();
+}
+
+function renderPagination() {
+    const total = filteredLeads.length;
+    const totalPages = Math.ceil(total / PAGE_SIZE) || 1;
+    
+    document.getElementById('pageInfo').textContent = 
+        `共 ${total} 条记录，第 ${currentPage}/${totalPages} 页`;
+    
+    let buttons = `<button class="page-btn" onclick="goPage(${currentPage - 1})" ${currentPage <= 1 ? 'disabled' : ''}>上一页</button>`;
+    
+    // 简单分页：最多显示7个页码
+    let startPage = Math.max(1, currentPage - 3);
+    let endPage = Math.min(totalPages, startPage + 6);
+    if (endPage - startPage < 6) {
+        startPage = Math.max(1, endPage - 6);
+    }
+    
+    for (let i = startPage; i <= endPage; i++) {
+        buttons += `<button class="page-btn ${i === currentPage ? 'active' : ''}" onclick="goPage(${i})">${i}</button>`;
+    }
+    
+    buttons += `<button class="page-btn" onclick="goPage(${currentPage + 1})" ${currentPage >= totalPages ? 'disabled' : ''}>下一页</button>`;
+    
+    document.getElementById('pageButtons').innerHTML = buttons;
+}
+
+function goPage(page) {
+    const totalPages = Math.ceil(filteredLeads.length / PAGE_SIZE);
+    if (page < 1 || page > totalPages) return;
+    currentPage = page;
+    renderTable();
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+}
+
+// ============================================================
+//  辅助渲染函数
+// ============================================================
+
+function renderRiskBadge(level) {
+    const map = {
+        '极高风险': 'risk-critical',
+        '高风险': 'risk-high',
+        '中高风险': 'risk-medium-high',
+        '中风险': 'risk-medium',
+        '低风险': 'risk-low'
+    };
+    const cls = map[level] || 'risk-low';
+    return `<span class="risk-badge ${cls}">${level || '未知'}</span>`;
+}
+
+function renderSourceBadge(source) {
+    if (source === '深度检测') {
+        return '<span class="source-badge source-deep">深度检测</span>';
+    } else if (source === '税检康自测') {
+        return '<span class="source-badge source-self">税检康自测</span>';
+    }
+    return '<span class="source-badge">' + (source || '-') + '</span>';
+}
+
+function renderStatusBadge(status) {
+    const map = {
+        '待联系': 'status-pending',
+        '已联系': 'status-contacted',
+        '已报价': 'status-quoted',
+        '已成单': 'status-won',
+        '已流失': 'status-lost'
+    };
+    const cls = map[status] || 'status-pending';
+    return `<span class="status-badge ${cls}">${status || '待联系'}</span>`;
+}
+
+function formatDate(dateStr) {
+    if (!dateStr) return '-';
+    const d = new Date(dateStr);
+    if (isNaN(d.getTime())) return dateStr;
+    const y = d.getFullYear();
+    const m = String(d.getMonth() + 1).padStart(2, '0');
+    const day = String(d.getDate()).padStart(2, '0');
+    const h = String(d.getHours()).padStart(2, '0');
+    const min = String(d.getMinutes()).padStart(2, '0');
+    return `${y}-${m}-${day} ${h}:${min}`;
+}
+
+function escapeHtml(text) {
+    const div = document.createElement('div');
+    div.textContent = text;
+    return div.innerHTML;
+}
+
+// ============================================================
+//  详情弹窗
+// ============================================================
+
+function viewDetail(id) {
+    const lead = allLeads.find(l => l.id === id);
+    if (!lead) return;
+    currentLead = lead;
+    
+    document.getElementById('modalTitle').textContent = lead.companyName + ' - 线索详情';
+    document.getElementById('modalBody').innerHTML = renderDetailContent(lead);
+    document.getElementById('detailModal').classList.add('active');
+}
+
+function closeModal() {
+    document.getElementById('detailModal').classList.remove('active');
+    currentLead = null;
+}
+
+function renderDetailContent(lead) {
+    const isSelfTest = lead.dataSource === '税检康自测';
+    
+    let html = `
+        <!-- 基本信息 -->
+        <div class="detail-section">
+            <h3>📋 基本信息</h3>
+            <div class="detail-grid">
+                <div class="detail-item"><span class="label">企业名称：</span><span class="value">${escapeHtml(lead.companyName || '-')}</span></div>
+                <div class="detail-item"><span class="label">数据来源：</span><span class="value">${renderSourceBadge(lead.dataSource)}</span></div>
+                <div class="detail-item"><span class="label">联系人：</span><span class="value">${escapeHtml(lead.contact || '-')}</span></div>
+                <div class="detail-item"><span class="label">手机号：</span><span class="value">${escapeHtml(lead.phone || '-')}</span></div>
+                <div class="detail-item"><span class="label">风险等级：</span><span class="value">${renderRiskBadge(lead.riskLevel)}</span></div>
+                <div class="detail-item"><span class="label">综合得分：</span><span class="value">${lead.totalScore || '-'} 分</span></div>
+                <div class="detail-item"><span class="label">提交时间：</span><span class="value">${formatDate(lead.submitTime)}</span></div>
+                <div class="detail-item"><span class="label">所属行业：</span><span class="value">${escapeHtml(lead.industry || '-')}</span></div>
+            </div>
+        </div>
+    `;
+    
+    // 自测详情
+    if (isSelfTest && lead.selfTestDetail) {
+        const detail = lead.selfTestDetail;
+        const dimScores = detail.dimensionScores || {};
+        
+        html += `
+        <div class="detail-section">
+            <h3>📊 自测详情（20题）</h3>
+            <div class="self-test-detail">
+                <div class="dimension-scores">
+                    ${Object.keys(dimScores).map(dim => `
+                        <div class="dim-score-card">
+                            <div class="dim-name">${dim}</div>
+                            <div class="dim-score">${dimScores[dim]}</div>
+                        </div>
+                    `).join('')}
+                </div>
+        `;
+        
+        // 答案列表
+        if (detail.answers && detail.answers.length) {
+            html += `
+                <div style="margin-top: 10px;">
+                    <div style="font-weight: 500; margin-bottom: 8px; font-size: 13px;">答题明细：</div>
+                    <div style="max-height: 200px; overflow-y: auto; font-size: 12px;">
+                        ${detail.answers.map(a => `
+                            <div style="padding: 6px 0; border-bottom: 1px dashed var(--border);">
+                                <span style="color: var(--primary); font-weight: 500;">第${a.questionId}题</span>
+                                <span style="color: var(--text-secondary); margin: 0 8px;">${a.riskDesc || ''}</span>
+                                <span style="color: ${a.score > 0 ? 'var(--warning)' : 'var(--success)'};">得分: ${a.score}</span>
+                            </div>
+                        `).join('')}
+                    </div>
+                </div>
+            `;
+        }
+        
+        html += `</div></div>`;
+    }
+    
+    // 深度检测信息（简单展示）
+    if (!isSelfTest && lead.businessInfo) {
+        html += `
+        <div class="detail-section">
+            <h3>🏢 工商信息</h3>
+            <div class="detail-grid">
+                <div class="detail-item"><span class="label">法定代表人：</span><span class="value">${escapeHtml(lead.businessInfo.legalPerson || '-')}</span></div>
+                <div class="detail-item"><span class="label">注册资本：</span><span class="value">${escapeHtml(lead.businessInfo.regCapital || '-')}</span></div>
+                <div class="detail-item"><span class="label">成立日期：</span><span class="value">${escapeHtml(lead.businessInfo.establishDate || '-')}</span></div>
+                <div class="detail-item"><span class="label">经营状态：</span><span class="value">${escapeHtml(lead.businessInfo.status || '-')}</span></div>
+                <div class="detail-item" style="grid-column: span 2;"><span class="label">经营范围：</span><span class="value">${escapeHtml(lead.businessInfo.businessScope || '-')}</span></div>
+            </div>
+        </div>
+        `;
+    }
+    
+    // 跟进状态与备注
+    html += `
+        <div class="detail-section">
+            <h3>📝 跟进管理</h3>
+            <div class="followup-section">
+                <div style="font-size: 13px; color: var(--text-secondary); margin-bottom: 8px;">跟进状态：</div>
+                <div class="status-selector">
+                    <div class="status-option ${lead.followStatus === '待联系' ? 'active' : ''}" onclick="selectStatus('待联系')">待联系</div>
+                    <div class="status-option ${lead.followStatus === '已联系' ? 'active' : ''}" onclick="selectStatus('已联系')">已联系</div>
+                    <div class="status-option ${lead.followStatus === '已报价' ? 'active' : ''}" onclick="selectStatus('已报价')">已报价</div>
+                    <div class="status-option ${lead.followStatus === '已成单' ? 'active' : ''}" onclick="selectStatus('已成单')">已成单</div>
+                    <div class="status-option ${lead.followStatus === '已流失' ? 'active' : ''}" onclick="selectStatus('已流失')">已流失</div>
+                </div>
+                
+                <div style="font-size: 13px; color: var(--text-secondary); margin-bottom: 8px;">跟进备注：</div>
+                <textarea class="remark-input" id="remarkInput" placeholder="输入本次跟进备注..."></textarea>
+                
+                <div class="remark-list" id="remarkList">
+                    ${(lead.remarks || []).map(r => `
+                        <div class="remark-item">
+                            <div class="remark-time">${formatDate(r.time)} · ${r.status || ''}</div>
+                            <div class="remark-content">${escapeHtml(r.content || '')}</div>
+                        </div>
+                    `).join('') || '<div style="color: var(--text-tertiary); text-align: center; padding: 15px;">暂无跟进记录</div>'}
+                </div>
+            </div>
+        </div>
+    `;
+    
+    return html;
+}
+
+function selectStatus(status) {
+    if (!currentLead) return;
+    currentLead.followStatus = status;
+    
+    // 更新UI
+    document.querySelectorAll('.status-option').forEach(el => {
+        el.classList.remove('active');
+        if (el.textContent === status) el.classList.add('active');
+    });
+}
+
+// ============================================================
+//  保存跟进
+// ============================================================
+
+async function saveFollowup() {
+    if (!currentLead) return;
+    
+    const remark = document.getElementById('remarkInput').value.trim();
+    const status = currentLead.followStatus;
+    
+    if (!remark && status === (allLeads.find(l => l.id === currentLead.id)?.followStatus)) {
+        showToast('没有修改内容', 'error');
+        return;
+    }
+    
+    try {
+        // 调用更新API
+        await updateLeadAPI(currentLead.id, {
+            followStatus: status,
+            remark: remark
+        });
+        
+        // 更新本地数据
+        const lead = allLeads.find(l => l.id === currentLead.id);
+        if (lead) {
+            lead.followStatus = status;
+            if (remark) {
+                if (!lead.remarks) lead.remarks = [];
+                lead.remarks.unshift({
+                    time: new Date().toISOString(),
+                    status: status,
+                    content: remark
+                });
+            }
+        }
+        
+        showToast('跟进记录已保存');
+        closeModal();
+        loadLeads();
+    } catch (e) {
+        console.error(e);
+        showToast('保存失败：' + e.message, 'error');
+    }
+}
+
+async function updateLeadAPI(id, data) {
+    // 实际部署时调用云函数
+    // const res = await fetch(API_UPDATE, {
+    //     method: 'POST',
+    //     headers: { 'Content-Type': 'application/json' },
+    //     body: JSON.stringify({ recordId: id, ...data })
+    // });
+    // const result = await res.json();
+    // if (result.code !== 0) throw new Error(result.msg);
+    // return result;
+    
+    // 模拟延迟
+    await new Promise(r => setTimeout(r, 500));
+    return { success: true };
+}
+
+// ============================================================
+//  生成/下载报告
+// ============================================================
+
+async function genReport(id) {
+    const lead = allLeads.find(l => l.id === id);
+    if (!lead) return;
+    
+    showToast('正在生成报告，请稍候...');
+    
+    try {
+        // 调用生成报告API
+        await genReportAPI(id);
+        showToast('报告生成成功，已上传到飞书');
+        loadLeads();
+    } catch (e) {
+        showToast('生成失败：' + e.message, 'error');
+    }
+}
+
+async function genReportAPI(id) {
+    // 实际部署时调用云函数触发生成
+    // const res = await fetch(API_GEN_REPORT, {
+    //     method: 'POST',
+    //     headers: { 'Content-Type': 'application/json' },
+    //     body: JSON.stringify({ recordId: id })
+    // });
+    // const result = await res.json();
+    // if (result.code !== 0) throw new Error(result.msg);
+    // return result;
+    
+    await new Promise(r => setTimeout(r, 1500));
+    return { success: true };
+}
+
+function downloadReport() {
+    if (!currentLead) return;
+    showToast('正在准备下载...');
+    
+    // 实际部署时下载飞书附件
+    // window.open(currentLead.reportUrl);
+    
+    setTimeout(() => {
+        showToast('报告下载功能需要部署云函数后使用');
+    }, 500);
+}
+
+// ============================================================
+//  Toast 提示
+// ============================================================
+
+function showToast(message, type = 'success') {
+    const toast = document.getElementById('toast');
+    toast.textContent = message;
+    toast.className = 'toast ' + (type === 'error' ? 'error' : '');
+    toast.classList.add('show');
+    
+    setTimeout(() => {
+        toast.classList.remove('show');
+    }, 2500);
+}
+
+// ============================================================
+//  模拟数据（开发/演示用）
+// ============================================================
+
+function getMockData() {
+    const companies = [
+        '江苏某某建筑工程有限公司',
+        '南京鸿泰建设集团有限公司',
+        '苏州金螳螂装饰股份有限公司',
+        '无锡中鼎集成技术有限公司',
+        '常州第二建筑工程有限公司',
+        '南通新华建筑集团有限公司',
+        '扬州建筑安装工程公司',
+        '镇江建工建设集团有限公司',
+        '泰州华夏建筑工程有限公司',
+        '盐城天虹建设集团有限公司',
+        '淮安建筑工程总公司',
+        '连云港兴隆建筑有限公司',
+        '徐州汉韵建筑工程有限公司',
+        '宿迁市建筑安装工程公司',
+        '苏州园林营造产业集团',
+        '南京大地建设集团有限责任公司',
+        '江苏三兴建工集团有限公司',
+        '武进建工集团有限公司',
+        '江苏邗建集团有限公司',
+        '正太集团有限公司',
+        '江苏南通六建建设集团',
+        '江苏南通三建集团股份',
+        '龙信建设集团有限公司',
+        '中南建筑产业集团有限责任公司',
+        '江苏省华建建设股份',
+    ];
+    
+    const contacts = ['张总', '李总', '王总', '赵总', '刘总', '陈总', '杨总', '黄总', '周总', '吴总'];
+    const statuses = ['待联系', '已联系', '已报价', '已成单', '已流失'];
+    const riskLevels = ['极高风险', '高风险', '中高风险', '中风险', '低风险'];
+    const sources = ['税检康自测', '深度检测'];
+    
+    const leads = [];
+    
+    for (let i = 0; i < 25; i++) {
+        const source = sources[Math.floor(Math.random() * sources.length)];
+        const isSelfTest = source === '税检康自测';
+        
+        let selfTestDetail = null;
+        let businessInfo = null;
+        
+        if (isSelfTest) {
+            const answers = [];
+            const dimScores = {};
+            const dims = ['发票收入', '成本费用', '资金往来', '股权架构', '金税合规'];
+            const questions = [
+                { id: 1, dim: '发票收入', desc: '虚开增值税专用发票' },
+                { id: 2, dim: '发票收入', desc: '私户收款隐匿收入' },
+                { id: 3, dim: '发票收入', desc: '进销项品名不匹配' },
+                { id: 4, dim: '发票收入', desc: '涉税中介协助虚开' },
+                { id: 5, dim: '成本费用', desc: '工资挂往来/虚列工资' },
+                { id: 6, dim: '成本费用', desc: '用劳务发票虚增成本' },
+                { id: 7, dim: '成本费用', desc: '股东个人消费公司报销' },
+                { id: 8, dim: '成本费用', desc: '无票支出/白条入账' },
+                { id: 9, dim: '资金往来', desc: '股东借款长期不还' },
+                { id: 10, dim: '资金往来', desc: '公转私行为异常' },
+                { id: 11, dim: '资金往来', desc: '往来挂账长期不清' },
+                { id: 12, dim: '资金往来', desc: '资金回流' },
+                { id: 13, dim: '股权架构', desc: '一人公司财产混同' },
+                { id: 14, dim: '股权架构', desc: '家族企业家企不分' },
+                { id: 15, dim: '股权架构', desc: '股权代持风险' },
+                { id: 16, dim: '股权架构', desc: '关联交易定价不公允' },
+                { id: 17, dim: '金税合规', desc: '税负率严重偏离行业' },
+                { id: 18, dim: '金税合规', desc: '多部门数据穿透' },
+                { id: 19, dim: '金税合规', desc: '库存进销存不匹配' },
+                { id: 20, dim: '金税合规', desc: '长期零申报' },
+            ];
+            
+            dims.forEach(dim => { dimScores[dim] = 0; });
+            
+            questions.forEach(q => {
+                const hasRisk = Math.random() > 0.4;
+                const score = hasRisk ? (Math.random() > 0.5 ? 2 : 1.2) : 0;
+                answers.push({
+                    questionId: q.id,
+                    option: hasRisk ? (Math.random() > 0.5 ? 'A' : 'B') : 'C',
+                    score: score,
+                    dimension: q.dim,
+                    riskDesc: q.desc
+                });
+                dimScores[q.dim] += score;
+            });
+            
+            // 保留一位小数
+            dims.forEach(dim => {
+                dimScores[dim] = Math.round(dimScores[dim] * 10) / 10;
+            });
+            
+            selfTestDetail = {
+                answers: answers,
+                dimensionScores: dimScores,
+                topRisks: [1, 12, 13]
+            };
+        } else {
+            businessInfo = {
+                legalPerson: contacts[Math.floor(Math.random() * contacts.length)].replace('总', '某某'),
+                regCapital: Math.floor(Math.random() * 5000 + 500) + '万元人民币',
+                establishDate: `20${Math.floor(Math.random() * 20 + 5)}-${String(Math.floor(Math.random()*12+1)).padStart(2,'0')}-${String(Math.floor(Math.random()*28+1)).padStart(2,'0')}`,
+                status: '存续（在营、开业、在册）',
+                businessScope: '建筑工程施工、市政公用工程、装饰装修工程、机电设备安装工程、建筑幕墙工程、钢结构工程、防水防腐保温工程、古建筑工程、城市及道路照明工程、环保工程、特种工程施工；建筑劳务分包；建筑材料销售。'
+            };
+        }
+        
+        const totalScore = isSelfTest ? 
+            Math.round(selfTestDetail.answers.reduce((s, a) => s + a.score, 0) * 10) / 10 :
+            Math.floor(Math.random() * 80 + 20);
+        
+        // 计算风险等级
+        let riskLevel;
+        if (isSelfTest) {
+            const percent = totalScore / 42;
+            if (percent >= 0.7) riskLevel = '极高风险';
+            else if (percent >= 0.5) riskLevel = '高风险';
+            else if (percent >= 0.3) riskLevel = '中高风险';
+            else if (percent >= 0.15) riskLevel = '中风险';
+            else riskLevel = '低风险';
+        } else {
+            riskLevel = riskLevels[Math.floor(Math.random() * riskLevels.length)];
+        }
+        
+        const daysAgo = Math.floor(Math.random() * 60);
+        const submitTime = new Date(Date.now() - daysAgo * 24 * 3600 * 1000).toISOString();
+        
+        // 备注
+        const remarks = [];
+        if (i % 3 === 0) {
+            remarks.push({
+                time: new Date(Date.now() - Math.floor(Math.random() * 10) * 86400000).toISOString(),
+                status: '已联系',
+                content: '已电话联系客户，对风险检测报告感兴趣，约定下周面谈。'
+            });
+        }
+        if (i % 5 === 0) {
+            remarks.push({
+                time: new Date(Date.now() - Math.floor(Math.random() * 5) * 86400000).toISOString(),
+                status: '已报价',
+                content: '已发送建税盾年度服务报价单，等待客户回复。'
+            });
+        }
+        
+        leads.push({
+            id: 'rec_' + (1000 + i),
+            companyName: companies[i % companies.length],
+            contact: contacts[Math.floor(Math.random() * contacts.length)],
+            phone: '138' + String(Math.floor(Math.random() * 90000000 + 10000000)),
+            dataSource: source,
+            riskLevel: riskLevel,
+            totalScore: totalScore,
+            followStatus: statuses[Math.floor(Math.random() * statuses.length)],
+            submitTime: submitTime,
+            industry: '建筑业',
+            selfTestDetail: selfTestDetail,
+            businessInfo: businessInfo,
+            remarks: remarks
+        });
+    }
+    
+    // 按时间倒序
+    leads.sort((a, b) => new Date(b.submitTime) - new Date(a.submitTime));
+    
+    return leads;
+}
+
+// 点击弹窗外部关闭
+document.getElementById('detailModal').addEventListener('click', function(e) {
+    if (e.target === this) closeModal();
+});
+
+// ============================================================
+//  启动
+// ============================================================
+
+checkLogin();
+</script>
+</body>
+</html>
