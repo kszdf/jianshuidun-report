@@ -4,6 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>税检康 · 财税风险智能检测</title>
+    <script src="https://imgcache.qq.com/qcloud/cloudbase-js-sdk/2.7.1/cloudbase.full.js"></script>
     <style>
         /* ========== 全局样式 ========== */
         * {
@@ -1935,31 +1936,52 @@
         }
 
         /* ==================================================
-         *  配置：云函数HTTP提交地址
-         *  部署微信云开发后，在「云开发控制台 → 云函数 → submitLeads → 触发器」中开启HTTP触发
-         *  将生成的HTTP路径填到下方
+         *  配置：云开发环境ID
+         *  使用云开发Web SDK直接调用云函数，无需HTTP触发
          * ================================================== */
-        const SUBMIT_API_URL = ''; // 例如：https://xxx.service.tcloudbase.com/submitLeads
+        const CLOUD_ENV_ID = 'cloudbase-d4g5g56s11509890d';
+        let cloudApp = null;
+        let cloudInited = false;
+
+        // 初始化云开发
+        async function initCloud() {
+            if (cloudInited) return cloudApp;
+            if (typeof cloudbase === 'undefined') {
+                console.warn('云开发SDK未加载');
+                return null;
+            }
+            try {
+                cloudApp = cloudbase.init({ env: CLOUD_ENV_ID });
+                // 匿名登录
+                const auth = cloudApp.auth({ persistence: 'local' });
+                if (!auth.hasLoginState()) {
+                    await auth.anonymousAuthProvider().signIn();
+                }
+                cloudInited = true;
+                return cloudApp;
+            } catch (e) {
+                console.error('云开发初始化失败:', e);
+                return null;
+            }
+        }
 
         /* ==================================================
          *  飞书/云函数数据提交
-         *  已配置API地址时走云函数真实提交，未配置时用模拟提交（不影响检测体验）
+         *  使用云开发Web SDK调用submitLeads云函数
          * ================================================== */
         async function submitToFeishu(data) {
-            // 未配置API地址时，模拟成功（不影响用户体验，数据不入库）
-            if (!SUBMIT_API_URL) {
-                console.log('未配置提交API，模拟提交成功:', data);
+            const app = await initCloud();
+            if (!app) {
+                console.log('云开发不可用，模拟提交成功:', data);
                 return new Promise(resolve => setTimeout(() => resolve({ success: true, simulated: true }), 800));
             }
 
             try {
-                const response = await fetch(SUBMIT_API_URL, {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify(data)
+                const res = await app.callFunction({
+                    name: 'submitLeads',
+                    data: data
                 });
-                const result = await response.json();
-                return result;
+                return res.result || { success: true };
             } catch (error) {
                 console.error('提交失败:', error);
                 return { success: false, message: error.message };
